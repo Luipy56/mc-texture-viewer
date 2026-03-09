@@ -1,0 +1,154 @@
+---
+description: Best practices for Vite — lean config, explicit imports, performance, and testing with Vitest.
+globs: "**/*.{js,jsx,ts,tsx}"
+alwaysApply: false
+---
+
+# vite Best Practices
+
+Vite is the modern standard for frontend tooling. Adhere to these principles to leverage its full potential, ensuring fast development and optimized production builds.
+
+## 1. Code Organization and Structure
+
+### Keep `vite.config.js` Minimal
+
+Vite's philosophy is a lean core. Avoid over-configuring. Only add plugins or options when absolutely necessary.
+
+❌ **BAD** — Overly complex `vite.config.js`
+
+```javascript
+// vite.config.js — too many plugins and options without need
+export default defineConfig({
+  plugins: [react(), legacy(), visualizer(), VitePWA(), /* ... */],
+  resolve: { alias: { '@': '/src' }, extensions: [/* ... */] },
+  build: { manualChunks: { vendor: ['react', 'react-dom'] }, /* ... */ },
+});
+```
+
+✅ **GOOD** — Lean and focused
+
+```javascript
+// vite.config.js
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+});
+```
+
+### Use Explicit File Extensions
+
+Relying on `resolve.extensions` for implicit imports forces multiple filesystem checks. Be explicit.
+
+❌ **BAD** — Implicit import
+
+```javascript
+import { util } from '../utils'; // Vite has to guess .js, .ts, .jsx
+```
+
+✅ **GOOD** — Explicit import
+
+```javascript
+import { util } from '../utils/index.js';
+```
+
+### Avoid Barrel Files
+
+Barrel files (`index.js` re-exporting many modules) force Vite to load all re-exported files even when only one is used.
+
+❌ **BAD** — Barrel file
+
+```javascript
+// src/utils/index.js
+export * from './color.js';
+export * from './dom.js';
+// src/app.js
+import { slash } from './utils'; // Loads color.js, dom.js, etc.
+```
+
+✅ **GOOD** — Direct imports
+
+```javascript
+import { slash } from './utils/slash.js';
+```
+
+## 2. Common Patterns and Anti-patterns
+
+### Embrace Native ES Modules
+
+Always use `import`/`export`. Do not use `require()` in client-side code.
+
+❌ **BAD** — CommonJS in client
+
+```javascript
+const myModule = require('./my-module');
+```
+
+✅ **GOOD** — ES Modules
+
+```javascript
+import myModule from './my-module.js';
+```
+
+### Use `import.meta.env` for Environment Variables
+
+Vite injects env via `import.meta.env`. Do not use `process.env` in client code.
+
+❌ **BAD** — `process.env` in browser code
+
+```javascript
+console.log(process.env.VITE_API_URL); // `process` is not defined
+```
+
+✅ **GOOD** — `import.meta.env`
+
+```javascript
+console.log(import.meta.env.VITE_API_URL);
+```
+
+### Optimize with Dynamic Imports
+
+Use dynamic imports for large components or libraries to reduce initial bundle size.
+
+✅ **GOOD** — Lazy loading
+
+```javascript
+const LargeComponent = lazy(() => import('./LargeComponent'));
+// Use with Suspense for loading state
+```
+
+## 3. Performance Considerations
+
+### Audit Custom Plugins
+
+Profile community plugins; they can introduce bottlenecks. Use `vite --debug plugin-transform` or `vite-plugin-inspect` to inspect the transform pipeline.
+
+### Base Path for Deployment
+
+When deploying to a sub-path (e.g. `yourdomain.com/my-app/`), set `base` in config and use `import.meta.env.BASE_URL` in code.
+
+```javascript
+export default defineConfig({
+  base: '/my-app/', // or './' for relative
+});
+```
+
+## 4. Testing with Vitest
+
+Prefer Vitest for Vite projects: same config and plugin ecosystem.
+
+✅ **GOOD** — Vitest in `vite.config.ts`
+
+```typescript
+/// <reference types="vitest/config" />
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/setupTests.js',
+  },
+});
+```

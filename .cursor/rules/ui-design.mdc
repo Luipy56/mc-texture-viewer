@@ -1,0 +1,39 @@
+---
+description: UI design and controls for mc-texture-viewer demo and embed surfaces
+globs: demo.html,**/viewer/*.ts
+alwaysApply: false
+---
+
+# UI Design — mc-texture-viewer
+
+Reglas para el diseño de la interfaz del visor (toolbar, controles, estados).
+
+## Página de referencia
+
+- **Demo con menú completo:** `demo.html` — toolbar con modelo, texturas, rotación y luz. Es la página que debe mejorarse.
+- **Entrada de desarrollo:** `index.html` — solo el componente, sin toolbar; útil para probar el viewer aislado.
+
+## Layout y toolbar
+
+- Toolbar: `flex-direction: column`, `width: 100%`, `min-height` explícito para que no colapse a 0.
+- Filas: `width: 100%`, agrupar por función (modelo/URLs, rotación, luz).
+- Colores: fondo oscuro coherente con la escena (#1a1a1a, #252525); texto #e8e8e8 / #999 para secundario.
+
+## Controles
+
+- **Switches:** checkbox visual (toggle). Estado "on" con clase `.on` y color de acento (ej. #5a9). Accesibilidad: `role="switch"`, `aria-checked`, tecla Espacio/Enter.
+- **Sliders (range):** ancho mínimo usable (~80–100px), `accent-color` para coherencia.
+- **Botones:** hover/active diferenciados; sin bordes llamativos.
+- **Reset:** doble clic en un parámetro resetea solo ese parámetro; botón con icono de flecha circular (↻/⟲) resetea todos los parámetros de rotación y luz a valores por defecto.
+
+## Valores por defecto (reset)
+
+- Rotación: auto-rotate off, speed 1.
+- Luz: sun on, azimuth 30°, elevation 50°, intensity 1.4, color #fff0e0.
+- Mantener estos valores en un único objeto/constante en el demo para reset individual y global.
+
+## Accesibilidad y UX
+
+- Labels asociados a inputs; `title` en controles que no tengan label visible.
+- Evitar dependencia de solo color; usar icono + texto donde aplique (ej. botón reset).
+- No depender de hover para información crítica.

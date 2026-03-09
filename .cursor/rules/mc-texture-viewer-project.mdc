@@ -1,0 +1,34 @@
+---
+description: Project context for mc-texture-viewer — Web Component, structure, and conventions.
+alwaysApply: true
+---
+
+# mc-texture-viewer — Project context
+
+This project is **mc-texture-viewer**: a web-embeddable 3D viewer for Minecraft-style models (glTF/GLB and OBJ+MTL). It is a single Web Component with no backend.
+
+## Naming and surface
+
+- **Package / repo name:** `mc-texture-viewer`
+- **Custom element tag:** `<mc-texture-viewer>`
+- **Global (IIFE bundle):** `window.McTextureViewer` (e.g. `McTextureViewer.warpedForestManifest`)
+- **Output bundle:** `dist/mc-texture-viewer.js`
+
+When editing code, docs, or config, use these names. Do not use the old name `mc-viewer-embed`.
+
+## Structure
+
+- **`src/embed.ts`** — Entry point; only registers the custom element and exposes `window.McTextureViewer` for demo manifests.
+- **`src/viewer/`** — Core logic: `McViewerElement.ts` (Web Component), `SceneManager.ts` (Three.js scene, loaders, textures), `textureManifest.ts`, `types.ts`.
+- **`demo.html`** — Consumes the built bundle from `dist/mc-texture-viewer.js` (model URL, texture base URL, ZIP upload).
+- **`index.html`** — Dev entry; loads sources via Vite.
+
+## Conventions
+
+- Attributes: `model-url`, `texture-base-url`, `auto-rotate`, `sun-enabled`. Use kebab-case in HTML and reflected camelCase in JS.
+- Public API: `setTextureManifest()`, `applyTextureZip(blob)`. Events: `model-loaded`, `error`, `texture-pack-applied`.
+- Texture manifest maps material/slot names to texture filenames; default pack from `texture-base-url`, overrides from ZIP with fallback to default.
+
+## Directory name
+
+If the repo root folder is still named something else (e.g. `tmpName`), it can be renamed to **mc-texture-viewer** for consistency. The package name and all references in code are already `mc-texture-viewer`.
