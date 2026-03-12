@@ -4,21 +4,496 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>mc-texture-viewer demo</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap" />
   <style>
+    /* Design tokens from primordial.css (ldeluipy.es design system) */
+    :root {
+      --negro: #0c100e;
+      --gris-oscuro: #131a17;
+      --gris-card: #1a2220;
+      --gris-borde: #2a3530;
+      --blanco: #f0f0f0;
+      --blanco-muted: rgba(240, 240, 240, 0.75);
+      --accent: #00ffa6;
+      --accent-hover: #5cffb8;
+      --accent-glow: rgba(0, 255, 166, 0.15);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --danger: #e06c75;
+    }
     *, *::before, *::after { box-sizing: border-box; }
-    html, body { margin: 0; height: 100%; background: #1a1a1a; }
-    mc-texture-viewer { display: block; width: 100%; height: 100%; min-height: 400px; }
+    html { height: 100%; overflow: hidden; }
+    body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Outfit', 'Segoe UI', system-ui, sans-serif;
+      background: var(--negro);
+      color: var(--blanco);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .toolbar {
+      flex-shrink: 0;
+      width: 100%;
+      min-height: 4rem;
+      padding: 0.6rem 1rem;
+      background: var(--gris-card);
+      border-bottom: 1px solid var(--gris-borde);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .toolbar label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+    }
+    .toolbar input[type="text"] {
+      padding: 0.35rem 0.5rem;
+      background: var(--negro);
+      border: 1px solid var(--gris-borde);
+      border-radius: var(--radius-sm);
+      color: var(--blanco);
+      font-size: 0.875rem;
+      font-family: inherit;
+    }
+    .toolbar input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .toolbar input[type="text"]::placeholder {
+      color: var(--blanco-muted);
+    }
+    .toolbar select {
+      padding: 0.35rem 0.5rem;
+      background: var(--negro);
+      border: 1px solid var(--gris-borde);
+      border-radius: var(--radius-sm);
+      color: var(--blanco);
+      font-size: 0.875rem;
+      font-family: inherit;
+      cursor: pointer;
+      min-width: 10rem;
+    }
+    .toolbar select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .toolbar .file-input-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      position: relative;
+      cursor: pointer;
+    }
+    .toolbar .file-input-wrap input[type="file"] {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+      font-size: 0;
+    }
+    .toolbar .file-input-btn {
+      padding: 0.4rem 0.75rem;
+      background: var(--gris-card);
+      border: 1px solid var(--gris-borde);
+      border-radius: var(--radius-sm);
+      color: var(--blanco);
+      font-size: 0.875rem;
+      font-family: inherit;
+      pointer-events: none;
+    }
+    .toolbar .file-input-wrap:hover .file-input-btn {
+      background: var(--gris-borde);
+    }
+    .toolbar .file-input-name {
+      color: var(--blanco-muted);
+      font-size: 0.8125rem;
+      max-width: 14ch;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .toolbar button {
+      padding: 0.4rem 0.75rem;
+      background: var(--gris-card);
+      border: 1px solid var(--gris-borde);
+      border-radius: var(--radius-sm);
+      color: var(--blanco);
+      font-size: 0.875rem;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .toolbar button:hover {
+      background: var(--gris-borde);
+    }
+    .toolbar button:active {
+      background: var(--gris-oscuro);
+    }
+    .toolbar-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      width: 100%;
+      min-height: 1px;
+    }
+    .toolbar-row:not(:first-child) {
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--gris-borde);
+    }
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .toolbar-group-label {
+      font-size: 0.75rem;
+      color: var(--blanco-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-right: 0.25rem;
+    }
+    .switch-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .switch-wrap span {
+      font-size: 0.875rem;
+      white-space: nowrap;
+    }
+    .switch {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      background: var(--gris-borde);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .switch.on { background: var(--accent); }
+    .switch::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      background: var(--blanco);
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .switch.on::after { transform: translateX(16px); }
+    .toolbar input[type="range"] {
+      width: 80px;
+      height: 6px;
+      accent-color: var(--accent);
+    }
+    .toolbar input[type="range"].wide { width: 100px; }
+    .toolbar input[type="color"] {
+      width: 28px;
+      height: 28px;
+      padding: 2px;
+      border: 1px solid var(--gris-borde);
+      border-radius: var(--radius-sm);
+      background: var(--negro);
+      cursor: pointer;
+    }
+    .param-reset { cursor: pointer; }
+    .param-reset:hover { color: var(--accent-hover); }
+    .toolbar-row .toolbar-spacer { margin-left: auto; }
+    .toolbar-info {
+      font-size: 1rem;
+      color: var(--gris-borde);
+      cursor: help;
+      line-height: 1;
+      padding: 0 0.25rem;
+    }
+    .toolbar-info:hover { color: var(--blanco-muted); }
+    .btn-reset {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      background: var(--gris-card);
+      border: 1px solid var(--gris-borde);
+      border-radius: var(--radius-sm);
+      color: var(--blanco-muted);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .btn-reset:hover { background: var(--gris-borde); color: var(--blanco); }
+    .btn-reset svg { width: 16px; height: 16px; }
+    #viewer {
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      display: block;
+    }
   </style>
 </head>
 <body>
-  <mc-texture-viewer id="viewer" auto-rotate sun-enabled></mc-texture-viewer>
-  <script type="module" src="/src/embed.ts"></script>
+  <div class="toolbar">
+    <div class="toolbar-row">
+      <label>
+        Model: <select id="modelSelect" aria-label="Select model"></select>
+      </label>
+      <label class="file-input-label">
+        Texture pack (ZIP):
+        <span class="file-input-wrap">
+          <span class="file-input-btn">Choose ZIP…</span>
+          <span class="file-input-name" id="zipFileName"></span>
+          <input type="file" id="zipInput" accept=".zip" />
+        </span>
+      </label>
+    </div>
+    <div class="toolbar-row">
+      <button type="button" class="btn-reset" id="resetAllBtn" title="Reset rotation and light to defaults" aria-label="Reset all">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+      </button>
+      <span class="toolbar-group-label">Rotation</span>
+      <div class="toolbar-group">
+        <div class="switch-wrap param-reset" data-reset="autoRotate">
+          <div class="switch" id="autoRotateSwitch" role="switch" aria-checked="false" tabindex="0" title="Auto-rotate model"></div>
+          <span>Auto-rotate</span>
+        </div>
+        <label class="switch-wrap param-reset" data-reset="rotationSpeed">
+          <span>Speed</span>
+          <input type="range" id="rotationSpeed" min="0.1" max="3" step="0.1" value="1" title="Rotation speed" />
+          <span id="rotationSpeedValue">1</span>
+        </label>
+      </div>
+      <span class="toolbar-group-label">Light</span>
+      <div class="toolbar-group">
+        <div class="switch-wrap param-reset" data-reset="sunEnabled">
+          <div class="switch on" id="sunSwitch" role="switch" aria-checked="true" tabindex="0" title="Sun on/off"></div>
+          <span>Sun</span>
+        </div>
+        <label class="switch-wrap param-reset" data-reset="sunAzimuth">
+          <span>Azimuth</span>
+          <input type="range" id="sunAzimuth" class="wide" min="0" max="360" value="30" title="Light horizontal angle (degrees)" />
+          <span id="sunAzimuthValue">30°</span>
+        </label>
+        <label class="switch-wrap param-reset" data-reset="sunElevation">
+          <span>Elevation</span>
+          <input type="range" id="sunElevation" class="wide" min="-90" max="90" value="50" title="Light vertical angle (degrees)" />
+          <span id="sunElevationValue">50°</span>
+        </label>
+        <label class="switch-wrap param-reset" data-reset="sunIntensity">
+          <span>Intensity</span>
+          <input type="range" id="sunIntensity" min="0" max="5" step="0.1" value="1.4" title="Light intensity" />
+          <span id="sunIntensityValue">1.4</span>
+        </label>
+        <label class="switch-wrap param-reset" data-reset="sunColor">
+          <span>Color</span>
+          <input type="color" id="sunColor" value="#fff0e0" title="Light color" />
+        </label>
+      </div>
+      <span class="toolbar-spacer"></span>
+      <span class="toolbar-info" role="img" aria-label="More information" title="Double-click a parameter to reset it.">ℹ</span>
+    </div>
+  </div>
+  <mc-texture-viewer id="viewer" sun-enabled></mc-texture-viewer>
   <script type="module">
-    import { warpedForestManifest } from '/src/viewer/textureManifest.js';
-    const viewer = document.getElementById('viewer');
-    viewer.setTextureManifest(warpedForestManifest);
-    viewer.setAttribute('model-url', '/ejemploAntiguoModelo/warpedForest.obj');
-    viewer.setAttribute('texture-base-url', '/ejemploAntiguoModelo/');
+    import '/src/embed.ts';
+    (function () {
+      var viewer = document.getElementById('viewer');
+      var modelSelect = document.getElementById('modelSelect');
+      var zipInput = document.getElementById('zipInput');
+      var autoRotateSwitch = document.getElementById('autoRotateSwitch');
+      var rotationSpeed = document.getElementById('rotationSpeed');
+      var rotationSpeedValue = document.getElementById('rotationSpeedValue');
+      var sunSwitch = document.getElementById('sunSwitch');
+      var sunAzimuth = document.getElementById('sunAzimuth');
+      var sunAzimuthValue = document.getElementById('sunAzimuthValue');
+      var sunElevation = document.getElementById('sunElevation');
+      var sunElevationValue = document.getElementById('sunElevationValue');
+      var sunIntensity = document.getElementById('sunIntensity');
+      var sunIntensityValue = document.getElementById('sunIntensityValue');
+      var sunColor = document.getElementById('sunColor');
+
+      var MODELS = [
+        { name: 'Warped Forest', url: '/ejemploAntiguoModelo/warpedForest.obj', textureBaseUrl: '/ejemploAntiguoModelo/', useWarpedForestManifest: true }
+      ];
+
+      function populateModelSelect() {
+        modelSelect.innerHTML = '';
+        MODELS.forEach(function (m, i) {
+          var opt = document.createElement('option');
+          opt.value = i;
+          opt.textContent = m.name;
+          modelSelect.appendChild(opt);
+        });
+      }
+
+      function applyModelSelection() {
+        var idx = parseInt(modelSelect.value, 10);
+        var m = MODELS[idx];
+        if (!m) return;
+        viewer.setAttribute('model-url', m.url);
+        viewer.setAttribute('texture-base-url', m.textureBaseUrl);
+        if (m.useWarpedForestManifest && window.McTextureViewer && window.McTextureViewer.warpedForestManifest) {
+          viewer.setTextureManifest(window.McTextureViewer.warpedForestManifest);
+        }
+      }
+
+      populateModelSelect();
+      applyModelSelection();
+
+      modelSelect.addEventListener('change', applyModelSelection);
+
+      var DEFAULTS = {
+        autoRotate: false,
+        rotationSpeed: 1,
+        sunEnabled: true,
+        sunAzimuth: 30,
+        sunElevation: 50,
+        sunIntensity: 1.4,
+        sunColor: '#fff0e0'
+      };
+
+      function applyParam(name) {
+        switch (name) {
+          case 'autoRotate':
+            viewer.autoRotate = DEFAULTS.autoRotate;
+            autoRotateSwitch.classList.toggle('on', DEFAULTS.autoRotate);
+            autoRotateSwitch.setAttribute('aria-checked', DEFAULTS.autoRotate);
+            break;
+          case 'rotationSpeed':
+            viewer.rotationSpeedMultiplier = DEFAULTS.rotationSpeed;
+            rotationSpeed.value = DEFAULTS.rotationSpeed;
+            rotationSpeedValue.textContent = DEFAULTS.rotationSpeed;
+            break;
+          case 'sunEnabled':
+            viewer.sunEnabled = DEFAULTS.sunEnabled;
+            sunSwitch.classList.toggle('on', DEFAULTS.sunEnabled);
+            sunSwitch.setAttribute('aria-checked', DEFAULTS.sunEnabled);
+            break;
+          case 'sunAzimuth':
+            viewer.setSunDirection(DEFAULTS.sunAzimuth, parseInt(sunElevation.value, 10));
+            sunAzimuth.value = DEFAULTS.sunAzimuth;
+            sunAzimuthValue.textContent = DEFAULTS.sunAzimuth + '°';
+            break;
+          case 'sunElevation':
+            viewer.setSunDirection(parseInt(sunAzimuth.value, 10), DEFAULTS.sunElevation);
+            sunElevation.value = DEFAULTS.sunElevation;
+            sunElevationValue.textContent = DEFAULTS.sunElevation + '°';
+            break;
+          case 'sunIntensity':
+            viewer.setSunIntensity(DEFAULTS.sunIntensity);
+            sunIntensity.value = DEFAULTS.sunIntensity;
+            sunIntensityValue.textContent = DEFAULTS.sunIntensity;
+            break;
+          case 'sunColor':
+            viewer.setSunColor(parseInt(DEFAULTS.sunColor.slice(1), 16));
+            sunColor.value = DEFAULTS.sunColor;
+            break;
+        }
+      }
+
+      function resetAll() {
+        viewer.autoRotate = DEFAULTS.autoRotate;
+        viewer.rotationSpeedMultiplier = DEFAULTS.rotationSpeed;
+        viewer.sunEnabled = DEFAULTS.sunEnabled;
+        viewer.setSunDirection(DEFAULTS.sunAzimuth, DEFAULTS.sunElevation);
+        viewer.setSunIntensity(DEFAULTS.sunIntensity);
+        viewer.setSunColor(parseInt(DEFAULTS.sunColor.slice(1), 16));
+        autoRotateSwitch.classList.toggle('on', DEFAULTS.autoRotate);
+        autoRotateSwitch.setAttribute('aria-checked', DEFAULTS.autoRotate);
+        rotationSpeed.value = DEFAULTS.rotationSpeed;
+        rotationSpeedValue.textContent = DEFAULTS.rotationSpeed;
+        sunSwitch.classList.toggle('on', DEFAULTS.sunEnabled);
+        sunSwitch.setAttribute('aria-checked', DEFAULTS.sunEnabled);
+        sunAzimuth.value = DEFAULTS.sunAzimuth;
+        sunAzimuthValue.textContent = DEFAULTS.sunAzimuth + '°';
+        sunElevation.value = DEFAULTS.sunElevation;
+        sunElevationValue.textContent = DEFAULTS.sunElevation + '°';
+        sunIntensity.value = DEFAULTS.sunIntensity;
+        sunIntensityValue.textContent = DEFAULTS.sunIntensity;
+        sunColor.value = DEFAULTS.sunColor;
+      }
+
+      document.getElementById('resetAllBtn').addEventListener('click', resetAll);
+      document.querySelectorAll('.param-reset').forEach(function (el) {
+        el.addEventListener('dblclick', function (e) {
+          e.preventDefault();
+          var param = el.getAttribute('data-reset');
+          if (param) applyParam(param);
+        });
+      });
+
+      function toggleSwitch(el, getter, setter) {
+        el.classList.toggle('on');
+        var on = el.classList.contains('on');
+        el.setAttribute('aria-checked', on);
+        setter(on);
+      }
+      autoRotateSwitch.addEventListener('click', function () {
+        toggleSwitch(autoRotateSwitch, viewer.autoRotate, function (v) { viewer.autoRotate = v; });
+      });
+      autoRotateSwitch.addEventListener('keydown', function (e) {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          autoRotateSwitch.click();
+        }
+      });
+      rotationSpeed.addEventListener('input', function () {
+        var v = parseFloat(rotationSpeed.value);
+        viewer.rotationSpeedMultiplier = v;
+        rotationSpeedValue.textContent = v;
+      });
+
+      sunSwitch.addEventListener('click', function () {
+        toggleSwitch(sunSwitch, viewer.sunEnabled, function (v) { viewer.sunEnabled = v; });
+      });
+      sunSwitch.addEventListener('keydown', function (e) {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          sunSwitch.click();
+        }
+      });
+      sunAzimuth.addEventListener('input', function () {
+        var az = parseInt(sunAzimuth.value, 10);
+        var el = parseInt(sunElevation.value, 10);
+        viewer.setSunDirection(az, el);
+        sunAzimuthValue.textContent = az + '°';
+      });
+      sunElevation.addEventListener('input', function () {
+        var az = parseInt(sunAzimuth.value, 10);
+        var el = parseInt(sunElevation.value, 10);
+        viewer.setSunDirection(az, el);
+        sunElevationValue.textContent = el + '°';
+      });
+      sunIntensity.addEventListener('input', function () {
+        var v = parseFloat(sunIntensity.value);
+        viewer.setSunIntensity(v);
+        sunIntensityValue.textContent = v;
+      });
+      sunColor.addEventListener('input', function () {
+        var hex = parseInt(sunColor.value.slice(1), 16);
+        viewer.setSunColor(hex);
+      });
+
+      zipInput.addEventListener('change', function (e) {
+        var file = e.target.files && e.target.files[0];
+        var nameEl = document.getElementById('zipFileName');
+        if (nameEl) nameEl.textContent = file ? file.name : '';
+        if (file) viewer.applyTextureZip(file);
+      });
+
+      viewer.addEventListener('model-loaded', function () { console.log('Model loaded'); });
+      viewer.addEventListener('error', function (e) { console.error('Viewer error:', e.detail); });
+      viewer.addEventListener('texture-pack-applied', function () { console.log('Texture pack applied'); });
+    })();
   </script>
 </body>
 </html>

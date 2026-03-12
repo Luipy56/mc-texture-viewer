@@ -1,6 +1,6 @@
 ---
 description: UI design and controls for mc-texture-viewer demo and embed surfaces
-globs: demo.html,**/viewer/*.ts
+globs: index.html,**/viewer/*.ts
 alwaysApply: false
 ---
 
@@ -10,8 +10,7 @@ Reglas para el diseño de la interfaz del visor (toolbar, controles, estados).
 
 ## Página de referencia
 
-- **Demo con menú completo:** `demo.html` — toolbar con modelo, texturas, rotación y luz. Es la página que debe mejorarse.
-- **Entrada de desarrollo:** `index.html` — solo el componente, sin toolbar; útil para probar el viewer aislado.
+- **`index.html`** — Única página demo en la raíz (`/`); toolbar con modelo, texturas, rotación y luz. Carga fuentes vía Vite.
 
 ## Layout y toolbar
 
