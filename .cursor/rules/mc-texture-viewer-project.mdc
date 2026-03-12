@@ -21,6 +21,8 @@ When editing code, docs, or config, use these names. Do not use the old name `mc
 - **`src/embed.ts`** — Entry point; only registers the custom element and exposes `window.McTextureViewer` for demo manifests.
 - **`src/viewer/`** — Core logic: `McViewerElement.ts` (Web Component), `SceneManager.ts` (Three.js scene, loaders, textures), `textureManifest.ts`, `types.ts`.
 - **`index.html`** — Single demo page; loads sources via Vite, toolbar with model selector, ZIP upload, rotation and light controls.
+- **`models/`** — 3D models; one subfolder per model (OBJ+MTL or GLB).
+- **`assets/`** — Default texture pack in **Minecraft resource pack** layout (paths start at `assets/`, e.g. `assets/minecraft/textures/block/`). Set `texture-base-url` to `./assets/` (or equivalent).
 
 ## Conventions
 

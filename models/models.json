@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Warped Forest",
+    "url": "/models/warped-forest/warpedForest.obj",
+    "textureBaseUrl": "/assets/",
+    "manifestKey": "warpedForestManifest"
+  },
+  {
+    "name": "Chicken",
+    "url": "/models/chicken/chicken.obj",
+    "textureBaseUrl": "/assets/",
+    "manifestKey": "chickenManifest"
+  }
+]

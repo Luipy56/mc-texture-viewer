@@ -57,9 +57,18 @@ Same as attributes, readable and writable from JavaScript: `modelUrl`, `textureB
 </script>
 ```
 
+## Directory layout
+
+- **`models/`** — 3D models, one subfolder per model (e.g. `models/warped-forest/warpedForest.obj` + `warpedForest.mtl`).
+- **`assets/`** — Default texture pack in **Minecraft resource pack** layout. All paths start at `assets/`:
+  - `assets/minecraft/textures/block/` — block textures
+  - `assets/minecraft/textures/entity/` — entity textures (if needed)
+
+Set `texture-base-url` to the root of this folder (e.g. `./assets/`). The texture manifest uses paths relative to it (e.g. `minecraft/textures/block/warped_nylium.png`).
+
 ## Demo and example model
 
-The repo includes an example OBJ+MTL model in `ejemploAntiguoModelo/` (Warped Forest, from Blockbench). The demo page loads `warpedForest.obj`. Textures are referenced in the MTL as `default/*.png`; put your texture files in `ejemploAntiguoModelo/default/` so they load. The OBJ’s `mtllib` must point to the correct MTL file (e.g. `warpedForest.mtl`).
+The repo includes a Warped Forest OBJ+MTL model in `models/warped-forest/` (Blockbench export). The demo loads it and uses `warpedForestManifest` with textures from `assets/minecraft/textures/block/`. Add your PNGs there (or supply a ZIP via the UI). The OBJ’s `mtllib` must point to the MTL next to it (e.g. `warpedForest.mtl`).
 
 ## Build
 

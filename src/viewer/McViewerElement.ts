@@ -4,9 +4,9 @@
  */
 import JSZip from 'jszip';
 import { SceneManager } from './SceneManager.js';
-import type { LoadedModel } from './SceneManager.js';
+import type { LoadedModel, TexturePackResult } from './SceneManager.js';
 import { defaultTextureManifest } from './textureManifest.js';
-import type { TextureManifest } from './types.js';
+import type { TextureManifest, TransitionType } from './types.js';
 
 export class McViewerElement extends HTMLElement {
   static readonly tagName = 'mc-texture-viewer';
@@ -194,12 +194,45 @@ export class McViewerElement extends HTMLElement {
     return this.sceneManager?.getSunColor() ?? 0xfff0e0;
   }
 
+  /** Texture-swap transition animation type. */
+  get transitionType(): TransitionType {
+    return this.sceneManager?.transitionType ?? 'none';
+  }
+
+  set transitionType(value: TransitionType) {
+    if (this.sceneManager) this.sceneManager.transitionType = value;
+  }
+
+  /**
+   * Slide the current model off screen vertically.
+   * Used to animate model changes from outside the component.
+   */
+  slideOut(direction: 'up' | 'down'): Promise<number> {
+    return this.sceneManager?.slideOut(direction) ?? Promise.resolve(0);
+  }
+
+  /**
+   * Slide the loaded model in from off screen.
+   * Call after loadModel() completes (model-loaded event).
+   */
+  slideIn(direction: 'up' | 'down'): Promise<void> {
+    return this.sceneManager?.slideIn(direction) ?? Promise.resolve();
+  }
+
   /**
    * Set the texture manifest for the current model (material name → texture filename).
    * Call before or after loading a model when using a custom pack (e.g. Warped Forest OBJ).
    */
   setTextureManifest(manifest: TextureManifest): void {
     this.sceneManager?.setTextureManifest(manifest);
+  }
+
+  /**
+   * Re-apply the default texture pack from texture-base-url using the current manifest.
+   * Use when switching back from a custom ZIP pack to the built-in textures.
+   */
+  async applyDefaultTextures(): Promise<void> {
+    await this.sceneManager?.applyDefaultTextures();
   }
 
   /** Exposed for Three.js: the canvas element where the scene is rendered. */
@@ -212,31 +245,66 @@ export class McViewerElement extends HTMLElement {
   }
 
   /**
-   * Apply a texture pack from a ZIP blob. Files in the ZIP are matched by filename to the manifest;
-   * missing textures fall back to the default pack. Call after a model is loaded.
+   * Apply a texture pack from a ZIP blob. The ZIP is expected to use the same layout as the
+   * project: assets/minecraft/textures/... (block, entity, etc.). Entries are matched to the
+   * manifest by full path (with or without "assets/" prefix) and by bare filename.
+   * Missing textures fall back to the default pack. Call after a model is loaded.
    */
   async applyTextureZip(zipBlob: Blob): Promise<void> {
-    if (!this.sceneManager) return;
+    if (!this.sceneManager) {
+      console.warn('[mc-texture-viewer] applyTextureZip: no scene manager');
+      return;
+    }
+    console.log('[mc-texture-viewer] applyTextureZip: loading ZIP…');
     const zip = await JSZip.loadAsync(zipBlob);
     const urlMap: Record<string, string> = {};
     const blobUrls: string[] = [];
     const imageExt = /\.(png|jpg|jpeg|webp)$/i;
+    const paths: string[] = [];
     for (const [path, entry] of Object.entries(zip.files)) {
       if (entry.dir || !imageExt.test(path)) continue;
+      paths.push(path);
       const blob = await entry.async('blob');
       const url = URL.createObjectURL(blob);
       blobUrls.push(url);
       const filename = path.split('/').pop() ?? path;
       urlMap[filename] = url;
       urlMap[path] = url;
+      // Manifest uses paths relative to assets/ (e.g. minecraft/textures/block/foo.png).
+      // Register that key so applyTexturePack finds the ZIP texture.
+      const withoutAssets = path.replace(/^assets\/?/i, '');
+      if (withoutAssets !== path) {
+        urlMap[withoutAssets] = url;
+      }
     }
+    console.log('[mc-texture-viewer] applyTextureZip: extracted', paths.length, 'image(s). Keys (sample):', Object.keys(urlMap).slice(0, 8));
     try {
-      await this.sceneManager.applyTexturePack(urlMap);
+      const result: TexturePackResult = await this.sceneManager.runWithTransition(
+        () => this.sceneManager!.applyTexturePack(urlMap)
+      );
       this.dispatchEvent(
-        new CustomEvent('texture-pack-applied', { bubbles: true })
+        new CustomEvent('texture-pack-applied', {
+          bubbles: true,
+          detail: result,
+        })
+      );
+      if (result.errors.length > 0) {
+        console.warn('[mc-texture-viewer] texture-pack-applied with errors:', result.errors);
+      } else {
+        console.log('[mc-texture-viewer] texture-pack-applied OK. Applied:', result.applied, '| from default:', result.fromDefault);
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error('[mc-texture-viewer] applyTextureZip failed:', message);
+      this.dispatchEvent(
+        new CustomEvent('error', {
+          bubbles: true,
+          detail: { message, source: 'texture-pack' },
+        })
       );
     } finally {
       for (const url of blobUrls) URL.revokeObjectURL(url);
+      console.log('[mc-texture-viewer] applyTextureZip: blob URLs revoked');
     }
   }
 }

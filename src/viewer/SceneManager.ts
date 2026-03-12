@@ -13,21 +13,32 @@ import {
   NearestFilter,
   DoubleSide,
   FrontSide,
+  Plane,
   type Group,
   type Mesh,
   type Material,
   type Texture,
+  type MeshStandardMaterial,
+  type MeshPhongMaterial,
+  type MeshLambertMaterial,
+  type MeshBasicMaterial,
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import type { TextureManifest } from './types.js';
+import type { TextureManifest, TransitionType } from './types.js';
 
 export interface LoadedModel {
   group: Group;
   meshes: Mesh[];
   materials: Material[];
+}
+
+export interface TexturePackResult {
+  applied: number;
+  fromDefault: number;
+  errors: string[];
 }
 
 const AUTO_ROTATE_SPEED_BASE = 0.3 * (Math.PI / 180);
@@ -87,6 +98,8 @@ export class SceneManager {
   private _defaultTextureBaseUrl = '';
   private readonly _currentTextures = new Map<Material, Texture>();
   private readonly textureLoader = new TextureLoader();
+  private _transitionType: TransitionType = 'none';
+  private _transitionOverlay: HTMLDivElement | null = null;
 
   constructor(canvas: HTMLCanvasElement) {
     this.scene = new Scene();
@@ -201,6 +214,342 @@ export class SceneManager {
     this._defaultTextureBaseUrl = url.replace(/\/?$/, '/');
   }
 
+  set transitionType(t: TransitionType) {
+    this._transitionType = t;
+  }
+
+  get transitionType(): TransitionType {
+    return this._transitionType;
+  }
+
+  // ─── Transition helpers ──────────────────────────────────────────────────
+
+  /** Collect all materials from the current model group. */
+  private getMaterials(): (MeshStandardMaterial | MeshPhongMaterial | MeshLambertMaterial | MeshBasicMaterial)[] {
+    if (!this._modelGroup) return [];
+    const mats: (MeshStandardMaterial | MeshPhongMaterial | MeshLambertMaterial | MeshBasicMaterial)[] = [];
+    const seen = new Set<Material>();
+    this._modelGroup.traverse((obj) => {
+      const mesh = obj as Mesh;
+      if (!mesh.isMesh) return;
+      const arr = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      for (const m of arr) {
+        if (!seen.has(m)) {
+          seen.add(m);
+          mats.push(m as MeshStandardMaterial);
+        }
+      }
+    });
+    return mats;
+  }
+
+  /**
+   * Linear interpolation helper. Resolves after `duration` ms, calling `tick(t)` with t in [0,1]
+   * each frame. t follows an ease-in-out curve.
+   */
+  private animate(duration: number, tick: (t: number) => void): Promise<void> {
+    return new Promise((resolve) => {
+      const start = performance.now();
+      const frame = (now: number) => {
+        const raw = Math.min((now - start) / duration, 1);
+        const t = raw < 0.5 ? 2 * raw * raw : -1 + (4 - 2 * raw) * raw; // ease-in-out
+        tick(t);
+        if (raw < 1) {
+          requestAnimationFrame(frame);
+        } else {
+          resolve();
+        }
+      };
+      requestAnimationFrame(frame);
+    });
+  }
+
+  /** Ensure an overlay <div> is ready, attached over the canvas. */
+  private ensureOverlay(): HTMLDivElement {
+    if (this._transitionOverlay) return this._transitionOverlay;
+    const canvas = this.renderer.domElement;
+    const parent = canvas.parentElement;
+    const overlay = document.createElement('div');
+    overlay.style.cssText = [
+      'position:absolute',
+      'inset:0',
+      'pointer-events:none',
+      'opacity:0',
+      'z-index:10',
+      'border-radius:inherit',
+    ].join(';');
+    if (parent) {
+      const ps = getComputedStyle(parent).position;
+      if (ps === 'static') parent.style.position = 'relative';
+      parent.appendChild(overlay);
+    } else {
+      // Fallback: overlay the canvas with fixed positioning
+      overlay.style.position = 'fixed';
+      document.body.appendChild(overlay);
+    }
+    this._transitionOverlay = overlay;
+    return overlay;
+  }
+
+  private removeOverlay(): void {
+    if (this._transitionOverlay) {
+      this._transitionOverlay.remove();
+      this._transitionOverlay = null;
+    }
+  }
+
+  // ─── 1. Dissolve ─────────────────────────────────────────────────────────
+  private async transitionDissolve(applyTextures: () => Promise<void>): Promise<void> {
+    const mats = this.getMaterials();
+    const origOpacities = mats.map((m) => (m as { opacity?: number }).opacity ?? 1);
+    const origTransparent = mats.map((m) => (m as { transparent?: boolean }).transparent ?? false);
+
+    // Enable transparency
+    for (const m of mats) {
+      (m as { transparent: boolean }).transparent = true;
+      m.needsUpdate = true;
+    }
+
+    // Fade out with dissolve-like noise via opacity
+    await this.animate(480, (t) => {
+      const alpha = 1 - t;
+      for (const m of mats) {
+        (m as { opacity: number }).opacity = alpha;
+        m.needsUpdate = true;
+      }
+    });
+
+    await applyTextures();
+
+    // Fade in
+    await this.animate(480, (t) => {
+      for (let i = 0; i < mats.length; i++) {
+        (mats[i] as { opacity: number }).opacity = t * origOpacities[i];
+        mats[i].needsUpdate = true;
+      }
+    });
+
+    // Restore
+    for (let i = 0; i < mats.length; i++) {
+      (mats[i] as { opacity: number }).opacity = origOpacities[i];
+      (mats[i] as { transparent: boolean }).transparent = origTransparent[i];
+      mats[i].needsUpdate = true;
+    }
+  }
+
+  // ─── 2. Flash ────────────────────────────────────────────────────────────
+  private async transitionFlash(applyTextures: () => Promise<void>): Promise<void> {
+    const overlay = this.ensureOverlay();
+    overlay.style.background = '#ffffff';
+    overlay.style.opacity = '0';
+
+    // Flash in
+    await this.animate(200, (t) => {
+      overlay.style.opacity = String(t * 0.92);
+    });
+
+    await applyTextures();
+
+    // Flash out
+    await this.animate(300, (t) => {
+      overlay.style.opacity = String((1 - t) * 0.92);
+    });
+
+    overlay.style.opacity = '0';
+    this.removeOverlay();
+  }
+
+  // ─── 3. Zoom + fade ──────────────────────────────────────────────────────
+  private async transitionZoom(applyTextures: () => Promise<void>): Promise<void> {
+    if (!this._modelGroup) { await applyTextures(); return; }
+    const group = this._modelGroup;
+    const mats = this.getMaterials();
+    const origTransparent = mats.map((m) => (m as { transparent?: boolean }).transparent ?? false);
+
+    for (const m of mats) {
+      (m as { transparent: boolean }).transparent = true;
+      m.needsUpdate = true;
+    }
+
+    // Shrink + fade out
+    await this.animate(380, (t) => {
+      const scale = 1 - t * 0.08;
+      group.scale.set(scale, scale, scale);
+      for (const m of mats) {
+        (m as { opacity: number }).opacity = 1 - t;
+        m.needsUpdate = true;
+      }
+    });
+
+    await applyTextures();
+
+    // Grow + fade in
+    await this.animate(380, (t) => {
+      const scale = 0.92 + t * 0.08;
+      group.scale.set(scale, scale, scale);
+      for (const m of mats) {
+        (m as { opacity: number }).opacity = t;
+        m.needsUpdate = true;
+      }
+    });
+
+    group.scale.set(1, 1, 1);
+    for (let i = 0; i < mats.length; i++) {
+      (mats[i] as { opacity: number }).opacity = 1;
+      (mats[i] as { transparent: boolean }).transparent = origTransparent[i];
+      mats[i].needsUpdate = true;
+    }
+  }
+
+  // ─── 4. Brush sweep ──────────────────────────────────────────────────────
+  private async transitionBrush(applyTextures: () => Promise<void>): Promise<void> {
+    if (!this._modelGroup) { await applyTextures(); return; }
+
+    // Compute model bounding box in world space to get x extent for clip plane
+    const box = new Box3().setFromObject(this._modelGroup);
+    const minX = box.min.x;
+    const maxX = box.max.x;
+    const width = maxX - minX || 1;
+
+    const mats = this.getMaterials();
+
+    // Phase 1: sweep a clip plane from right edge to left, hiding the model (fade out half)
+    // We use a clip plane on the renderer (global clip) so it cuts all meshes
+    this.renderer.clippingPlanes = [new Plane(new Vector3(1, 0, 0), -maxX)];
+    this.renderer.localClippingEnabled = true;
+
+    await this.animate(500, (t) => {
+      // Plane normal (1,0,0), constant moves from -maxX to -minX (sweeps left to right)
+      const constant = -(minX + width * t);
+      this.renderer.clippingPlanes = [new Plane(new Vector3(1, 0, 0), constant)];
+    });
+
+    // All hidden — swap textures
+    await applyTextures();
+
+    // Phase 2: reveal new textures — sweep clip plane back (right)
+    await this.animate(500, (t) => {
+      const constant = -(minX + width * (1 - t));
+      this.renderer.clippingPlanes = [new Plane(new Vector3(1, 0, 0), constant)];
+    });
+
+    this.renderer.clippingPlanes = [];
+    this.renderer.localClippingEnabled = false;
+    void mats; // unused ref
+  }
+
+  // ─── 5. Spin + crossfade ────────────────────────────────────────────────
+  private async transitionSpin(applyTextures: () => Promise<void>): Promise<void> {
+    if (!this._modelGroup) { await applyTextures(); return; }
+    const group = this._modelGroup;
+    const startRotY = group.rotation.y;
+    const mats = this.getMaterials();
+    const origTransparent = mats.map((m) => (m as { transparent?: boolean }).transparent ?? false);
+    let texturesSwapped = false;
+
+    for (const m of mats) {
+      (m as { transparent: boolean }).transparent = true;
+      m.needsUpdate = true;
+    }
+
+    // Full 360° spin over 900 ms; swap textures at the midpoint (180°)
+    await this.animate(900, (t) => {
+      group.rotation.y = startRotY + 2 * Math.PI * t;
+
+      // Fade out in first half, fade in second half
+      const opacity = t < 0.5 ? 1 - t * 2 : (t - 0.5) * 2;
+      for (const m of mats) {
+        (m as { opacity: number }).opacity = opacity;
+        m.needsUpdate = true;
+      }
+
+      if (!texturesSwapped && t >= 0.5) {
+        texturesSwapped = true;
+        // Fire async but we already past the invisible frame
+        void applyTextures();
+      }
+    });
+
+    // Ensure textures were applied even if animation went fast
+    if (!texturesSwapped) await applyTextures();
+
+    group.rotation.y = startRotY;
+    for (let i = 0; i < mats.length; i++) {
+      (mats[i] as { opacity: number }).opacity = 1;
+      (mats[i] as { transparent: boolean }).transparent = origTransparent[i];
+      mats[i].needsUpdate = true;
+    }
+  }
+
+  /**
+   * Wrap a texture-apply function with the configured transition animation.
+   * Call this instead of calling applyTexturePack directly when a transition is desired.
+   */
+  async runWithTransition(applyTextures: () => Promise<TexturePackResult>): Promise<TexturePackResult> {
+    let result: TexturePackResult = { applied: 0, fromDefault: 0, errors: [] };
+    const wrapped = async () => { result = await applyTextures(); };
+
+    switch (this._transitionType) {
+      case 'dissolve': await this.transitionDissolve(wrapped); break;
+      case 'flash':    await this.transitionFlash(wrapped); break;
+      case 'zoom':     await this.transitionZoom(wrapped); break;
+      case 'brush':    await this.transitionBrush(wrapped); break;
+      case 'spin':     await this.transitionSpin(wrapped); break;
+      default:         await wrapped(); break;
+    }
+    return result;
+  }
+
+  /**
+   * Slide the current model group off screen vertically.
+   * direction 'up'  → model moves upward and disappears above.
+   * direction 'down' → model moves downward and disappears below.
+   * Returns the Y offset used so slideIn can mirror it.
+   */
+  async slideOut(direction: 'up' | 'down'): Promise<number> {
+    if (!this._modelGroup) return 0;
+    const group = this._modelGroup;
+    const slideY = this._slideDistance();
+    const sign = direction === 'up' ? 1 : -1;
+    const startY = group.position.y;
+    await this.animate(340, (t) => {
+      group.position.y = startY + sign * slideY * t;
+    });
+    group.position.y = startY + sign * slideY;
+    return sign * slideY;
+  }
+
+  /**
+   * Slide the newly loaded model group in from off screen.
+   * direction 'up'  → new model enters from below (comes up).
+   * direction 'down' → new model enters from above (comes down).
+   */
+  async slideIn(direction: 'up' | 'down'): Promise<void> {
+    if (!this._modelGroup) return;
+    const group = this._modelGroup;
+    const slideY = this._slideDistance();
+    // Entering from opposite side: 'up' means old left upward → new arrives from below (negative Y)
+    const sign = direction === 'up' ? -1 : 1;
+    const targetY = group.position.y;
+    group.position.y = targetY + sign * slideY;
+    await this.animate(340, (t) => {
+      group.position.y = targetY + sign * slideY * (1 - t);
+    });
+    group.position.y = targetY;
+  }
+
+  /** World-space vertical distance large enough to slide the model fully off screen. */
+  private _slideDistance(): number {
+    if (this._modelGroup) {
+      const box = new Box3().setFromObject(this._modelGroup);
+      const size = new Vector3();
+      box.getSize(size);
+      // Use model height + generous margin so it fully clears the viewport
+      return size.y * 3 + 10;
+    }
+    return 20;
+  }
+
   /**
    * Apply default textures from _defaultTextureBaseUrl using _textureManifest.
    * Call after model is loaded when default texture pack is configured.
@@ -213,29 +562,46 @@ export class SceneManager {
       urlMap[slot.filename] = this._defaultTextureBaseUrl + slot.filename;
       urlMap[slot.key] = urlMap[slot.filename];
     }
-    await this.applyTexturePack(urlMap);
+    await this.runWithTransition(() => this.applyTexturePack(urlMap));
   }
 
   /**
    * Apply texture pack from a map of filename/key -> URL. Missing entries fall back to default URLs.
+   * Returns counts and any errors for logging/UI.
    */
-  async applyTexturePack(urlMap: Record<string, string>): Promise<void> {
-    if (!this._loadedModel || !this._textureManifest) return;
+  async applyTexturePack(urlMap: Record<string, string>): Promise<TexturePackResult> {
+    const result: TexturePackResult = { applied: 0, fromDefault: 0, errors: [] };
+    if (!this._loadedModel || !this._textureManifest) {
+      console.warn('[mc-texture-viewer] applyTexturePack: no loaded model or manifest');
+      result.errors.push('No model or texture manifest loaded');
+      return result;
+    }
     const base = this._defaultTextureBaseUrl;
     const load = (url: string): Promise<Texture> =>
       new Promise((resolve, reject) => {
         this.textureLoader.load(url, resolve, undefined, reject);
       });
+    console.log('[mc-texture-viewer] applyTexturePack: manifest has', this._textureManifest.slots.length, 'slot(s)');
     for (const slot of this._textureManifest.slots) {
-      const url =
-        urlMap[slot.filename] ??
-        urlMap[slot.key] ??
-        (base ? base + slot.filename : '');
-      if (!url) continue;
+      const fromZip =
+        urlMap[slot.filename] ?? urlMap[slot.key];
+      const url = fromZip ?? (base ? base + slot.filename : '');
+      const source = fromZip ? 'ZIP' : base ? 'default' : 'none';
+      if (!url) {
+        const msg = `No texture for "${slot.key}" (${slot.filename}) and no default base URL`;
+        result.errors.push(msg);
+        console.warn('[mc-texture-viewer] applyTexturePack: skip', slot.key, '-', msg);
+        continue;
+      }
       const material = slot.materialName
         ? this._loadedModel.materials.find((m) => m.name === slot.materialName)
         : this._loadedModel.materials[0];
-      if (!material) continue;
+      if (!material) {
+        const msg = `Material "${slot.materialName ?? 'default'}" not found for slot "${slot.key}"`;
+        result.errors.push(msg);
+        console.warn('[mc-texture-viewer] applyTexturePack: skip', slot.key, '-', msg);
+        continue;
+      }
       const mat = material as Material & { map?: Texture };
       const old = this._currentTextures.get(material);
       if (old) {
@@ -243,6 +609,7 @@ export class SceneManager {
         this._currentTextures.delete(material);
       }
       try {
+        console.log('[mc-texture-viewer] applyTexturePack: loading', slot.key, 'from', source, '→', url.slice(0, 60) + (url.length > 60 ? '…' : ''));
         const texture = await load(url);
         texture.format = RGBAFormat;
         texture.colorSpace = 'srgb';
@@ -260,10 +627,17 @@ export class SceneManager {
           m.side = FrontSide;
         }
         this._currentTextures.set(material, texture);
-      } catch {
-        // keep existing or leave unset
+        result.applied++;
+        if (!fromZip) result.fromDefault++;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        const msg = `Failed to load "${slot.key}" (${slot.filename}): ${message}`;
+        result.errors.push(msg);
+        console.error('[mc-texture-viewer] applyTexturePack:', msg);
       }
     }
+    console.log('[mc-texture-viewer] applyTexturePack: done. Applied:', result.applied, '| from default:', result.fromDefault, '| errors:', result.errors.length);
+    return result;
   }
 
   private frameModel(group: Group): void {
@@ -433,5 +807,6 @@ export class SceneManager {
     }
     this.clearModel();
     this.renderer.dispose();
+    this.removeOverlay();
   }
 }

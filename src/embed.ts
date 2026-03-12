@@ -1,5 +1,8 @@
 import { McViewerElement } from './viewer/McViewerElement.js';
-import { warpedForestManifest } from './viewer/textureManifest.js';
+import {
+  warpedForestManifest,
+  chickenManifest,
+} from './viewer/textureManifest.js';
 
 if (!customElements.get(McViewerElement.tagName)) {
   customElements.define(McViewerElement.tagName, McViewerElement);
@@ -7,9 +10,12 @@ if (!customElements.get(McViewerElement.tagName)) {
 
 declare global {
   interface Window {
-    McTextureViewer?: { warpedForestManifest: typeof warpedForestManifest };
+    McTextureViewer?: {
+      warpedForestManifest: typeof warpedForestManifest;
+      chickenManifest: typeof chickenManifest;
+    };
   }
 }
 if (typeof window !== 'undefined') {
-  window.McTextureViewer = { warpedForestManifest };
+  window.McTextureViewer = { warpedForestManifest, chickenManifest };
 }

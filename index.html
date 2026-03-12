@@ -83,6 +83,10 @@
       outline: none;
       border-color: var(--accent);
     }
+    #modelSelect {
+      min-width: 0;
+      max-width: 12rem;
+    }
     .toolbar .file-input-wrap {
       display: inline-flex;
       align-items: center;
@@ -232,7 +236,7 @@
       flex-shrink: 0;
     }
     .btn-reset:hover { background: var(--gris-borde); color: var(--blanco); }
-    .btn-reset svg { width: 16px; height: 16px; }
+    .btn-reset svg { width: 16px; height: 16px; flex-shrink: 0; display: block; }
     #viewer {
       flex: 1;
       min-height: 0;
@@ -244,21 +248,39 @@
 <body>
   <div class="toolbar">
     <div class="toolbar-row">
+      <div class="model-nav" aria-label="Model selector">
+        <span class="toolbar-group-label" style="margin-right:0.25rem">Model</span>
+        <button type="button" class="model-nav-btn" id="modelPrevBtn" title="Previous model" aria-label="Previous model">&#8249;</button>
+        <select id="modelSelect" aria-label="Select model"></select>
+        <button type="button" class="model-nav-btn" id="modelNextBtn" title="Next model" aria-label="Next model">&#8250;</button>
+        <div class="model-nav-dots" id="modelNavDots" aria-hidden="true"></div>
+      </div>
       <label>
-        Model: <select id="modelSelect" aria-label="Select model"></select>
+        Texture pack: <select id="texturePackSelect" aria-label="Select texture pack"></select>
       </label>
       <label class="file-input-label">
-        Texture pack (ZIP):
+        Add Pack
         <span class="file-input-wrap">
-          <span class="file-input-btn">Choose ZIP…</span>
+          <span class="file-input-btn">Add Pack…</span>
           <span class="file-input-name" id="zipFileName"></span>
           <input type="file" id="zipInput" accept=".zip" />
         </span>
       </label>
+      <label title="Animation played when swapping texture packs">
+        <span class="toolbar-group-label" style="margin-right:0.25rem">Transition</span>
+        <select id="transitionSelect" aria-label="Transition animation">
+          <option value="none">None (instant)</option>
+          <option value="dissolve">1. Dissolve</option>
+          <option value="flash">2. Flash</option>
+          <option value="zoom">3. Zoom + Fade</option>
+          <option value="brush">4. Brush sweep</option>
+          <option value="spin">5. Spin</option>
+        </select>
+      </label>
     </div>
     <div class="toolbar-row">
       <button type="button" class="btn-reset" id="resetAllBtn" title="Reset rotation and light to defaults" aria-label="Reset all">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
       </button>
       <span class="toolbar-group-label">Rotation</span>
       <div class="toolbar-group">
@@ -305,10 +327,16 @@
   <mc-texture-viewer id="viewer" sun-enabled></mc-texture-viewer>
   <script type="module">
     import '/src/embed.ts';
+    import modelsList from '/models/models.json';
     (function () {
       var viewer = document.getElementById('viewer');
       var modelSelect = document.getElementById('modelSelect');
+      var modelPrevBtn = document.getElementById('modelPrevBtn');
+      var modelNextBtn = document.getElementById('modelNextBtn');
+      var modelNavDots = document.getElementById('modelNavDots');
+      var texturePackSelect = document.getElementById('texturePackSelect');
       var zipInput = document.getElementById('zipInput');
+      var loadedPacks = [];
       var autoRotateSwitch = document.getElementById('autoRotateSwitch');
       var rotationSpeed = document.getElementById('rotationSpeed');
       var rotationSpeedValue = document.getElementById('rotationSpeedValue');
@@ -320,10 +348,26 @@
       var sunIntensity = document.getElementById('sunIntensity');
       var sunIntensityValue = document.getElementById('sunIntensityValue');
       var sunColor = document.getElementById('sunColor');
+      var transitionSelect = document.getElementById('transitionSelect');
 
-      var MODELS = [
-        { name: 'Warped Forest', url: '/ejemploAntiguoModelo/warpedForest.obj', textureBaseUrl: '/ejemploAntiguoModelo/', useWarpedForestManifest: true }
-      ];
+      var MODELS = Array.isArray(modelsList) ? modelsList : [];
+      var currentModelIdx = 0;
+      var modelChanging = false;
+
+      function updateModelNav() {
+        modelPrevBtn.disabled = currentModelIdx === 0;
+        modelNextBtn.disabled = currentModelIdx === MODELS.length - 1;
+        modelSelect.value = currentModelIdx;
+        // Dots
+        modelNavDots.innerHTML = '';
+        if (MODELS.length > 1 && MODELS.length <= 12) {
+          MODELS.forEach(function (_, i) {
+            var dot = document.createElement('span');
+            dot.className = 'model-nav-dot' + (i === currentModelIdx ? ' active' : '');
+            modelNavDots.appendChild(dot);
+          });
+        }
+      }
 
       function populateModelSelect() {
         modelSelect.innerHTML = '';
@@ -336,20 +380,108 @@
       }
 
       function applyModelSelection() {
-        var idx = parseInt(modelSelect.value, 10);
+        var idx = currentModelIdx;
         var m = MODELS[idx];
         if (!m) return;
         viewer.setAttribute('model-url', m.url);
         viewer.setAttribute('texture-base-url', m.textureBaseUrl);
-        if (m.useWarpedForestManifest && window.McTextureViewer && window.McTextureViewer.warpedForestManifest) {
-          viewer.setTextureManifest(window.McTextureViewer.warpedForestManifest);
+        var manifestKey = m.manifestKey;
+        if (manifestKey && window.McTextureViewer && window.McTextureViewer[manifestKey]) {
+          viewer.setTextureManifest(window.McTextureViewer[manifestKey]);
         }
       }
 
-      populateModelSelect();
-      applyModelSelection();
+      /**
+       * Navigate to a model with slide animation.
+       * direction: 'next' → old slides up, new comes from below.
+       * direction: 'prev' → old slides down, new comes from above.
+       */
+      async function navigateModel(direction, targetIdx) {
+        if (modelChanging) return;
+        var nextIdx = (targetIdx !== undefined)
+          ? targetIdx
+          : (direction === 'next' ? currentModelIdx + 1 : currentModelIdx - 1);
+        if (nextIdx < 0 || nextIdx >= MODELS.length) return;
+        if (nextIdx === currentModelIdx) return;
 
-      modelSelect.addEventListener('change', applyModelSelection);
+        // Determine visual slide direction from relative position
+        var slideDir = nextIdx > currentModelIdx ? 'up' : 'down';
+
+        modelChanging = true;
+        modelPrevBtn.disabled = true;
+        modelNextBtn.disabled = true;
+
+        // 1. Slide out current model
+        await viewer.slideOut(slideDir);
+
+        // 2. Switch model
+        currentModelIdx = nextIdx;
+        updateModelNav();
+
+        // 3. Wait for model-loaded before sliding in
+        await new Promise(function (resolve) {
+          function onLoaded() {
+            viewer.removeEventListener('model-loaded', onLoaded);
+            viewer.removeEventListener('error', onError);
+            resolve();
+          }
+          function onError() {
+            viewer.removeEventListener('model-loaded', onLoaded);
+            viewer.removeEventListener('error', onError);
+            resolve();
+          }
+          viewer.addEventListener('model-loaded', onLoaded);
+          viewer.addEventListener('error', onError);
+          applyModelSelection();
+        });
+
+        // 4. Slide in new model
+        await viewer.slideIn(slideDir);
+
+        modelChanging = false;
+        updateModelNav();
+      }
+
+      modelPrevBtn.addEventListener('click', function () { navigateModel('prev'); });
+      modelNextBtn.addEventListener('click', function () { navigateModel('next'); });
+      modelSelect.addEventListener('change', function () {
+        var newIdx = parseInt(modelSelect.value, 10);
+        if (isNaN(newIdx) || newIdx === currentModelIdx) return;
+        navigateModel(newIdx > currentModelIdx ? 'next' : 'prev', newIdx);
+      });
+
+      populateModelSelect();
+      updateModelNav();
+      if (MODELS.length) applyModelSelection();
+
+      function populateTexturePackSelect() {
+        texturePackSelect.innerHTML = '';
+        var van = document.createElement('option');
+        van.value = 'vanilla';
+        van.textContent = 'Vanilla';
+        texturePackSelect.appendChild(van);
+        loadedPacks.forEach(function (p, i) {
+          var opt = document.createElement('option');
+          opt.value = String(i);
+          opt.textContent = p.name;
+          texturePackSelect.appendChild(opt);
+        });
+      }
+
+      function applyTexturePackSelection() {
+        var val = texturePackSelect.value;
+        if (val === 'vanilla') {
+          viewer.applyDefaultTextures();
+        } else {
+          var idx = parseInt(val, 10);
+          if (!isNaN(idx) && loadedPacks[idx]) {
+            viewer.applyTextureZip(loadedPacks[idx].blob);
+          }
+        }
+      }
+
+      populateTexturePackSelect();
+      texturePackSelect.addEventListener('change', applyTexturePackSelection);
 
       var DEFAULTS = {
         autoRotate: false,
@@ -483,16 +615,35 @@
         viewer.setSunColor(hex);
       });
 
+      transitionSelect.addEventListener('change', function () {
+        viewer.transitionType = transitionSelect.value;
+      });
+
       zipInput.addEventListener('change', function (e) {
         var file = e.target.files && e.target.files[0];
         var nameEl = document.getElementById('zipFileName');
         if (nameEl) nameEl.textContent = file ? file.name : '';
-        if (file) viewer.applyTextureZip(file);
+        if (file) {
+          loadedPacks.push({ name: file.name, blob: file });
+          populateTexturePackSelect();
+          texturePackSelect.value = String(loadedPacks.length - 1);
+          viewer.applyTextureZip(file);
+        }
       });
 
-      viewer.addEventListener('model-loaded', function () { console.log('Model loaded'); });
+      viewer.addEventListener('model-loaded', function () {
+        console.log('Model loaded');
+        if (texturePackSelect.value !== 'vanilla') applyTexturePackSelection();
+      });
       viewer.addEventListener('error', function (e) { console.error('Viewer error:', e.detail); });
-      viewer.addEventListener('texture-pack-applied', function () { console.log('Texture pack applied'); });
+      viewer.addEventListener('texture-pack-applied', function (e) {
+        var d = e.detail;
+        if (d && d.errors && d.errors.length) {
+          console.warn('Texture pack applied with errors:', d.applied, 'applied,', d.fromDefault, 'from default.', d.errors);
+        } else {
+          console.log('Texture pack applied. Applied:', d && d.applied, '| from default:', d && d.fromDefault);
+        }
+      });
     })();
   </script>
 </body>
