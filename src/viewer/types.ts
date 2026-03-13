@@ -7,6 +7,9 @@
  */
 export type TransitionType = 'none' | 'zoom' | 'brush' | 'spin';
 
+/** Named camera viewpoint presets. */
+export type CameraPreset = 'front' | 'side' | 'top' | 'iso';
+
 /**
  * Slot in the texture manifest: maps a logical name to a filename and material.
  */

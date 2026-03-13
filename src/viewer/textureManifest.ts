@@ -99,6 +99,43 @@ export const hutManifest: TextureManifest = {
 };
 
 /**
+ * Manifest for the Birch Forest OBJ/MTL model (Blockbench export).
+ * Paths relative to texture-base-url = ./assets/. Material names match models/birch/birch.mtl.
+ */
+export const birchManifest: TextureManifest = {
+  slots: [
+    { key: 'grass_block_side', filename: 'minecraft/textures/block/grass_block_side.png', materialName: 'm_f345789e-8c29-1362-029b-4e1923ff296c' },
+    { key: 'grass_block_top', filename: 'minecraft/textures/block/grass_block_top.png', materialName: 'm_e666b017-fc47-0710-dabc-d361ede7fe7d' },
+    { key: 'dirt', filename: 'minecraft/textures/block/dirt.png', materialName: 'm_80a3ab2b-f5c0-4c6e-a678-4a125a68305d' },
+    { key: 'pink_tulip', filename: 'minecraft/textures/block/pink_tulip.png', materialName: 'm_70098ad3-deb5-19dc-8969-a1254067546c' },
+    { key: 'birch_leaves', filename: 'minecraft/textures/block/birch_leaves.png', materialName: 'm_20aea295-ea2b-d7a4-9989-a11b1396ee2b' },
+    { key: 'birch_log', filename: 'minecraft/textures/block/birch_log.png', materialName: 'm_87069218-6ca0-53fb-6a12-844577fe2503' },
+    { key: 'birch_log_top', filename: 'minecraft/textures/block/birch_log_top.png', materialName: 'm_e88582d6-8df6-5ebb-d013-409648e2b5c0' },
+    { key: 'red_mushroom', filename: 'minecraft/textures/block/red_mushroom.png', materialName: 'm_36a5cf41-8c07-e67d-3492-52a838f66c95' },
+    { key: 'brown_mushroom', filename: 'minecraft/textures/block/brown_mushroom.png', materialName: 'm_07b80522-710e-8ab0-3a5e-b088361a0088' },
+    { key: 'pink_petals', filename: 'minecraft/textures/block/pink_petals.png', materialName: 'm_5a1f42bb-e684-b2ac-c9f3-0a59d8e6e67d' },
+    { key: 'pink_petals_stem', filename: 'minecraft/textures/block/pink_petals_stem.png', materialName: 'm_b29abc1c-0cb9-aa86-7371-3d440b7a1f9b' },
+  ],
+};
+
+/**
+ * Manifest for the Pyramid OBJ/MTL model (Blockbench export).
+ * Paths relative to texture-base-url = ./assets/. Material names match models/pyramid/pyramid.mtl.
+ */
+export const pyramidManifest: TextureManifest = {
+  slots: [
+    { key: 'sandstone', filename: 'minecraft/textures/block/sandstone.png', materialName: 'm_3d226b10-38c9-2931-fa0a-f20d8e3b3f2b' },
+    { key: 'sandstone_top', filename: 'minecraft/textures/block/sandstone_top.png', materialName: 'm_62d5fa20-4ea7-1200-ce2c-fa7e202c3bcd' },
+    { key: 'sandstone_bottom', filename: 'minecraft/textures/block/sandstone_bottom.png', materialName: 'm_516d18fa-03fd-1350-c85f-dfe55acf55fb' },
+    { key: 'cut_sandstone', filename: 'minecraft/textures/block/cut_sandstone.png', materialName: 'm_e6b3366a-6c42-4d92-cbbe-c2564c10f5c7' },
+    { key: 'sand', filename: 'minecraft/textures/block/sand.png', materialName: 'm_bb2d304e-45a1-c5be-0053-06f8a2db7b60' },
+    { key: 'orange_terracotta', filename: 'minecraft/textures/block/orange_terracotta.png', materialName: 'm_c2450b67-a77d-7ec0-f593-9be11bf0ea44' },
+    { key: 'chiseled_sandstone', filename: 'minecraft/textures/block/chiseled_sandstone.png', materialName: 'm_c7b0e6f0-a6c3-2633-23fd-b147d6aa9a1f' },
+    { key: 'cow', filename: 'minecraft/textures/entity/cow/cow.png', materialName: 'm_ae88375b-515c-4415-1a37-3e34ca9ae5d2' },
+  ],
+};
+
+/**
  * Manifest for the Crimson Forest OBJ/MTL model (Blockbench export).
  * Paths relative to texture-base-url = ./assets/. Material names match models/crimson-forest/crimson.mtl.
  */

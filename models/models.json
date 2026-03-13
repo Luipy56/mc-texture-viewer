@@ -18,6 +18,12 @@
     "manifestKey": "cherryManifest"
   },
   {
+    "name": "Birch Forest",
+    "url": "/models/birch/birch.obj",
+    "textureBaseUrl": "/assets/",
+    "manifestKey": "birchManifest"
+  },
+  {
     "name": "Hut",
     "url": "/models/hut/hut.obj",
     "textureBaseUrl": "/assets/",
@@ -28,5 +34,11 @@
     "url": "/models/chicken/chicken.obj",
     "textureBaseUrl": "/assets/",
     "manifestKey": "chickenManifest"
+  },
+  {
+    "name": "Pyramid",
+    "url": "/models/pyramid/pyramid.obj",
+    "textureBaseUrl": "/assets/",
+    "manifestKey": "pyramidManifest"
   }
 ]

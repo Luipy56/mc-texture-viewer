@@ -5,6 +5,8 @@ import {
   cherryManifest,
   hutManifest,
   crimsonForestManifest,
+  birchManifest,
+  pyramidManifest,
 } from './viewer/textureManifest.js';
 
 if (!customElements.get(McViewerElement.tagName)) {
@@ -19,6 +21,8 @@ declare global {
       cherryManifest: typeof cherryManifest;
       hutManifest: typeof hutManifest;
       crimsonForestManifest: typeof crimsonForestManifest;
+      birchManifest: typeof birchManifest;
+      pyramidManifest: typeof pyramidManifest;
     };
   }
 }
@@ -29,5 +33,7 @@ if (typeof window !== 'undefined') {
     cherryManifest,
     hutManifest,
     crimsonForestManifest,
+    birchManifest,
+    pyramidManifest,
   };
 }

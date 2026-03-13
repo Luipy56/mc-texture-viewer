@@ -243,6 +243,51 @@
     }
     .btn-reset:hover { background: var(--gris-borde); color: var(--blanco); }
     .btn-reset svg { width: 16px; height: 16px; flex-shrink: 0; display: block; }
+    .btn-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      background: var(--gris-card);
+      border: 1px solid var(--gris-borde);
+      border-radius: var(--radius-sm);
+      color: var(--blanco-muted);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .btn-icon:hover { background: var(--gris-borde); color: var(--blanco); }
+    .btn-icon svg { width: 16px; height: 16px; flex-shrink: 0; display: block; }
+    /* model nav */
+    .model-nav {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .model-nav-btn {
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      font-size: 1.1rem;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .model-nav-dots {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      margin-left: 0.25rem;
+    }
+    .model-nav-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--gris-borde);
+      transition: background 0.2s;
+    }
+    .model-nav-dot.active { background: var(--accent); }
     #viewer {
       flex: 1;
       min-height: 0;
@@ -253,6 +298,7 @@
 </head>
 <body>
   <div class="toolbar">
+    <!-- Row 1: Model + Texture pack + Transition -->
     <div class="toolbar-row">
       <div class="model-nav" aria-label="Model selector">
         <span class="toolbar-group-label" style="margin-right:0.25rem">Model</span>
@@ -281,15 +327,26 @@
           <option value="spin" selected>Spin</option>
         </select>
       </label>
+      <!-- Screenshot + Fullscreen -->
+      <div class="toolbar-group" style="margin-left:auto">
+        <button type="button" class="btn-icon" id="snapshotBtn" title="Download screenshot (S)">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </button>
+        <button type="button" class="btn-icon" id="fullscreenBtn" title="Fullscreen (F)">
+          <svg id="fullscreenIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        </button>
+      </div>
     </div>
+
+    <!-- Row 2: Rotation + Light -->
     <div class="toolbar-row">
-      <button type="button" class="btn-reset" id="resetAllBtn" title="Reset rotation and light to defaults" aria-label="Reset all">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      <button type="button" class="btn-reset" id="resetAllBtn" title="Reset camera, rotation and light to defaults" aria-label="Reset all">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
       </button>
       <span class="toolbar-group-label">Rotation</span>
       <div class="toolbar-group">
         <div class="switch-wrap param-reset" data-reset="autoRotate">
-          <div class="switch" id="autoRotateSwitch" role="switch" aria-checked="false" tabindex="0" title="Auto-rotate model"></div>
+          <div class="switch" id="autoRotateSwitch" role="switch" aria-checked="false" tabindex="0" title="Auto-rotate model (R)"></div>
           <span>Auto-rotate</span>
         </div>
         <label class="switch-wrap param-reset" data-reset="rotationSpeed">
@@ -306,17 +363,17 @@
         </div>
         <label class="switch-wrap param-reset" data-reset="sunAzimuth">
           <span>Azimuth</span>
-          <input type="range" id="sunAzimuth" class="wide" min="0" max="360" value="30" title="Light horizontal angle (degrees)" />
+          <input type="range" id="sunAzimuth" class="wide" min="0" max="360" value="30" />
           <span id="sunAzimuthValue" class="toolbar-value">30°</span>
         </label>
         <label class="switch-wrap param-reset" data-reset="sunElevation">
           <span>Elevation</span>
-          <input type="range" id="sunElevation" class="wide" min="-90" max="90" value="50" title="Light vertical angle (degrees)" />
+          <input type="range" id="sunElevation" class="wide" min="-90" max="90" value="50" />
           <span id="sunElevationValue" class="toolbar-value">50°</span>
         </label>
         <label class="switch-wrap param-reset" data-reset="sunIntensity">
           <span>Intensity</span>
-          <input type="range" id="sunIntensity" min="0" max="5" step="0.1" value="1.4" title="Light intensity" />
+          <input type="range" id="sunIntensity" min="0" max="5" step="0.1" value="1.4" />
           <span id="sunIntensityValue" class="toolbar-value">1.4</span>
         </label>
         <label class="switch-wrap param-reset" data-reset="sunColor">
@@ -325,10 +382,57 @@
         </label>
       </div>
       <span class="toolbar-spacer"></span>
-      <span class="toolbar-info" role="img" aria-label="More information" title="Double-click a parameter to reset it.">ℹ</span>
+      <span class="toolbar-info" role="img" aria-label="Keyboard shortcuts"
+        title="Keyboard shortcuts: R=auto-rotate, W=wireframe, F=fullscreen, S=screenshot, Space=reset camera, ←/→=prev/next model. Double-click a parameter to reset it.">ℹ</span>
+    </div>
+
+    <!-- Row 3: Camera + Visual effects -->
+    <div class="toolbar-row">
+      <span class="toolbar-group-label">Camera</span>
+      <div class="toolbar-group">
+        <button type="button" id="camFrontBtn" title="Front view" style="padding:0.3rem 0.6rem;font-size:0.8rem">Front</button>
+        <button type="button" id="camSideBtn"  title="Side view"  style="padding:0.3rem 0.6rem;font-size:0.8rem">Side</button>
+        <button type="button" id="camTopBtn"   title="Top view"   style="padding:0.3rem 0.6rem;font-size:0.8rem">Top</button>
+        <button type="button" id="camIsoBtn"   title="Isometric view" style="padding:0.3rem 0.6rem;font-size:0.8rem">Iso</button>
+      </div>
+
+      <span class="toolbar-group-label">Effects</span>
+      <div class="toolbar-group">
+        <div class="switch-wrap">
+          <div class="switch" id="wireframeSwitch" role="switch" aria-checked="false" tabindex="0" title="Wireframe (W)"></div>
+          <span>Wireframe</span>
+        </div>
+        <div class="switch-wrap">
+          <div class="switch" id="hemisphereSwitch" role="switch" aria-checked="false" tabindex="0" title="Hemisphere light (sky/ground AO)"></div>
+          <span>Hemisphere</span>
+        </div>
+        <div class="switch-wrap">
+          <div class="switch" id="shadowCatcherSwitch" role="switch" aria-checked="false" tabindex="0" title="Ground shadow catcher"></div>
+          <span>Shadows</span>
+        </div>
+        <div class="switch-wrap">
+          <div class="switch" id="fogSwitch" role="switch" aria-checked="false" tabindex="0" title="Fog"></div>
+          <span>Fog</span>
+        </div>
+        <label class="switch-wrap" id="fogColorLabel" style="display:none">
+          <span>Fog color</span>
+          <input type="color" id="fogColor" value="#1a1a1a" title="Fog color" />
+        </label>
+      </div>
+
+      <span class="toolbar-group-label">Background</span>
+      <div class="toolbar-group">
+        <input type="color" id="bgColor" value="#1a1a1a" title="Background color" />
+        <label class="switch-wrap">
+          <input type="checkbox" id="bgTransparent" />
+          <span>Transparent</span>
+        </label>
+      </div>
     </div>
   </div>
+
   <mc-texture-viewer id="viewer" sun-enabled></mc-texture-viewer>
+
   <script type="module">
     import '/src/embed.ts';
     import modelsList from '/models/models.json';
@@ -353,16 +457,33 @@
       var sunIntensityValue = document.getElementById('sunIntensityValue');
       var sunColor = document.getElementById('sunColor');
       var transitionSelect = document.getElementById('transitionSelect');
+      var snapshotBtn = document.getElementById('snapshotBtn');
+      var fullscreenBtn = document.getElementById('fullscreenBtn');
+      var fullscreenIcon = document.getElementById('fullscreenIcon');
+      var wireframeSwitch = document.getElementById('wireframeSwitch');
+      var hemisphereSwitch = document.getElementById('hemisphereSwitch');
+      var shadowCatcherSwitch = document.getElementById('shadowCatcherSwitch');
+      var fogSwitch = document.getElementById('fogSwitch');
+      var fogColor = document.getElementById('fogColor');
+      var fogColorLabel = document.getElementById('fogColorLabel');
+      var bgColor = document.getElementById('bgColor');
+      var bgTransparent = document.getElementById('bgTransparent');
+      var camFrontBtn = document.getElementById('camFrontBtn');
+      var camSideBtn = document.getElementById('camSideBtn');
+      var camTopBtn = document.getElementById('camTopBtn');
+      var camIsoBtn = document.getElementById('camIsoBtn');
+      var resetAllBtn = document.getElementById('resetAllBtn');
 
       var MODELS = Array.isArray(modelsList) ? modelsList : [];
       var currentModelIdx = 0;
       var modelChanging = false;
 
+      // ── Model navigation ──────────────────────────────────────────────────
+
       function updateModelNav() {
         modelPrevBtn.disabled = currentModelIdx === 0;
         modelNextBtn.disabled = currentModelIdx === MODELS.length - 1;
         modelSelect.value = currentModelIdx;
-        // Dots
         modelNavDots.innerHTML = '';
         if (MODELS.length > 1 && MODELS.length <= 12) {
           MODELS.forEach(function (_, i) {
@@ -384,8 +505,7 @@
       }
 
       function applyModelSelection() {
-        var idx = currentModelIdx;
-        var m = MODELS[idx];
+        var m = MODELS[currentModelIdx];
         if (!m) return;
         viewer.setAttribute('model-url', m.url);
         viewer.setAttribute('texture-base-url', m.textureBaseUrl);
@@ -395,11 +515,6 @@
         }
       }
 
-      /**
-       * Navigate to a model with slide animation.
-       * direction: 'next' → old slides up, new comes from below.
-       * direction: 'prev' → old slides down, new comes from above.
-       */
       async function navigateModel(direction, targetIdx) {
         if (modelChanging) return;
         var nextIdx = (targetIdx !== undefined)
@@ -408,21 +523,15 @@
         if (nextIdx < 0 || nextIdx >= MODELS.length) return;
         if (nextIdx === currentModelIdx) return;
 
-        // Determine visual slide direction from relative position
         var slideDir = nextIdx > currentModelIdx ? 'up' : 'down';
-
         modelChanging = true;
         modelPrevBtn.disabled = true;
         modelNextBtn.disabled = true;
 
-        // 1. Slide out current model
         await viewer.slideOut(slideDir);
-
-        // 2. Switch model
         currentModelIdx = nextIdx;
         updateModelNav();
 
-        // 3. Wait for model-loaded before sliding in (no texture transition when changing model)
         await new Promise(function (resolve) {
           function onLoaded() {
             viewer.removeEventListener('model-loaded', onLoaded);
@@ -440,9 +549,7 @@
           applyModelSelection();
         });
 
-        // 4. Slide in new model
         await viewer.slideIn(slideDir);
-
         modelChanging = false;
         updateModelNav();
       }
@@ -455,20 +562,32 @@
         navigateModel(newIdx > currentModelIdx ? 'next' : 'prev', newIdx);
       });
 
+      // keyboard shortcuts from viewer element
+      viewer.addEventListener('shortcut-prev-model', function () { navigateModel('prev'); });
+      viewer.addEventListener('shortcut-next-model', function () { navigateModel('next'); });
+      viewer.addEventListener('shortcut-autorotate', function (e) {
+        autoRotateSwitch.classList.toggle('on', e.detail);
+        autoRotateSwitch.setAttribute('aria-checked', e.detail);
+      });
+      viewer.addEventListener('shortcut-wireframe', function (e) {
+        wireframeSwitch.classList.toggle('on', e.detail);
+        wireframeSwitch.setAttribute('aria-checked', e.detail);
+      });
+
       populateModelSelect();
       updateModelNav();
       if (MODELS.length) applyModelSelection();
 
+      // ── Texture packs ─────────────────────────────────────────────────────
+
       function populateTexturePackSelect() {
         texturePackSelect.innerHTML = '';
         var van = document.createElement('option');
-        van.value = 'vanilla';
-        van.textContent = 'Vanilla';
+        van.value = 'vanilla'; van.textContent = 'Vanilla';
         texturePackSelect.appendChild(van);
         loadedPacks.forEach(function (p, i) {
           var opt = document.createElement('option');
-          opt.value = String(i);
-          opt.textContent = p.name;
+          opt.value = String(i); opt.textContent = p.name;
           texturePackSelect.appendChild(opt);
         });
       }
@@ -479,14 +598,14 @@
           viewer.applyDefaultTextures();
         } else {
           var idx = parseInt(val, 10);
-          if (!isNaN(idx) && loadedPacks[idx]) {
-            viewer.applyTextureZip(loadedPacks[idx].blob);
-          }
+          if (!isNaN(idx) && loadedPacks[idx]) viewer.applyTextureZip(loadedPacks[idx].blob);
         }
       }
 
       populateTexturePackSelect();
       texturePackSelect.addEventListener('change', applyTexturePackSelection);
+
+      // ── Defaults ──────────────────────────────────────────────────────────
 
       var DEFAULTS = {
         autoRotate: false,
@@ -495,7 +614,8 @@
         sunAzimuth: 30,
         sunElevation: 50,
         sunIntensity: 1.4,
-        sunColor: '#fff0e0'
+        sunColor: '#fff0e0',
+        bgColor: '#1a1a1a',
       };
 
       function applyParam(name) {
@@ -538,28 +658,23 @@
       }
 
       function resetAll() {
-        viewer.autoRotate = DEFAULTS.autoRotate;
-        viewer.rotationSpeedMultiplier = DEFAULTS.rotationSpeed;
-        viewer.sunEnabled = DEFAULTS.sunEnabled;
-        viewer.setSunDirection(DEFAULTS.sunAzimuth, DEFAULTS.sunElevation);
-        viewer.setSunIntensity(DEFAULTS.sunIntensity);
-        viewer.setSunColor(parseInt(DEFAULTS.sunColor.slice(1), 16));
-        autoRotateSwitch.classList.toggle('on', DEFAULTS.autoRotate);
-        autoRotateSwitch.setAttribute('aria-checked', DEFAULTS.autoRotate);
-        rotationSpeed.value = DEFAULTS.rotationSpeed;
-        rotationSpeedValue.textContent = DEFAULTS.rotationSpeed;
-        sunSwitch.classList.toggle('on', DEFAULTS.sunEnabled);
-        sunSwitch.setAttribute('aria-checked', DEFAULTS.sunEnabled);
-        sunAzimuth.value = DEFAULTS.sunAzimuth;
-        sunAzimuthValue.textContent = DEFAULTS.sunAzimuth + '°';
-        sunElevation.value = DEFAULTS.sunElevation;
-        sunElevationValue.textContent = DEFAULTS.sunElevation + '°';
-        sunIntensity.value = DEFAULTS.sunIntensity;
-        sunIntensityValue.textContent = DEFAULTS.sunIntensity;
-        sunColor.value = DEFAULTS.sunColor;
+        applyParam('autoRotate');
+        applyParam('rotationSpeed');
+        applyParam('sunEnabled');
+        applyParam('sunAzimuth');
+        applyParam('sunElevation');
+        applyParam('sunIntensity');
+        applyParam('sunColor');
+        // Reset background
+        bgTransparent.checked = false;
+        bgColor.disabled = false;
+        bgColor.value = DEFAULTS.bgColor;
+        viewer.setBackground(parseInt(DEFAULTS.bgColor.slice(1), 16));
+        // Reset camera
+        viewer.resetCamera();
       }
 
-      document.getElementById('resetAllBtn').addEventListener('click', resetAll);
+      resetAllBtn.addEventListener('click', resetAll);
       document.querySelectorAll('.param-reset').forEach(function (el) {
         el.addEventListener('dblclick', function (e) {
           e.preventDefault();
@@ -568,20 +683,22 @@
         });
       });
 
-      function toggleSwitch(el, getter, setter) {
+      // ── Toggle helper ──────────────────────────────────────────────────────
+
+      function toggleSwitch(el, setter) {
         el.classList.toggle('on');
         var on = el.classList.contains('on');
         el.setAttribute('aria-checked', on);
         setter(on);
       }
+
+      // ── Rotation controls ─────────────────────────────────────────────────
+
       autoRotateSwitch.addEventListener('click', function () {
-        toggleSwitch(autoRotateSwitch, viewer.autoRotate, function (v) { viewer.autoRotate = v; });
+        toggleSwitch(autoRotateSwitch, function (v) { viewer.autoRotate = v; });
       });
       autoRotateSwitch.addEventListener('keydown', function (e) {
-        if (e.key === ' ' || e.key === 'Enter') {
-          e.preventDefault();
-          autoRotateSwitch.click();
-        }
+        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); autoRotateSwitch.click(); }
       });
       rotationSpeed.addEventListener('input', function () {
         var v = parseFloat(rotationSpeed.value);
@@ -589,25 +706,22 @@
         rotationSpeedValue.textContent = v;
       });
 
+      // ── Sun controls ──────────────────────────────────────────────────────
+
       sunSwitch.addEventListener('click', function () {
-        toggleSwitch(sunSwitch, viewer.sunEnabled, function (v) { viewer.sunEnabled = v; });
+        toggleSwitch(sunSwitch, function (v) { viewer.sunEnabled = v; });
       });
       sunSwitch.addEventListener('keydown', function (e) {
-        if (e.key === ' ' || e.key === 'Enter') {
-          e.preventDefault();
-          sunSwitch.click();
-        }
+        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); sunSwitch.click(); }
       });
       sunAzimuth.addEventListener('input', function () {
         var az = parseInt(sunAzimuth.value, 10);
-        var el = parseInt(sunElevation.value, 10);
-        viewer.setSunDirection(az, el);
+        viewer.setSunDirection(az, parseInt(sunElevation.value, 10));
         sunAzimuthValue.textContent = az + '°';
       });
       sunElevation.addEventListener('input', function () {
-        var az = parseInt(sunAzimuth.value, 10);
         var el = parseInt(sunElevation.value, 10);
-        viewer.setSunDirection(az, el);
+        viewer.setSunDirection(parseInt(sunAzimuth.value, 10), el);
         sunElevationValue.textContent = el + '°';
       });
       sunIntensity.addEventListener('input', function () {
@@ -616,9 +730,10 @@
         sunIntensityValue.textContent = v;
       });
       sunColor.addEventListener('input', function () {
-        var hex = parseInt(sunColor.value.slice(1), 16);
-        viewer.setSunColor(hex);
+        viewer.setSunColor(parseInt(sunColor.value.slice(1), 16));
       });
+
+      // ── Wheel on ranges ───────────────────────────────────────────────────
 
       function addWheelToRange(rangeInput) {
         var wrap = rangeInput.closest('label') || rangeInput.parentElement;
@@ -641,9 +756,13 @@
       addWheelToRange(sunElevation);
       addWheelToRange(sunIntensity);
 
+      // ── Transition ────────────────────────────────────────────────────────
+
       transitionSelect.addEventListener('change', function () {
         viewer.transitionType = transitionSelect.value;
       });
+
+      // ── ZIP ───────────────────────────────────────────────────────────────
 
       zipInput.addEventListener('change', function (e) {
         var file = e.target.files && e.target.files[0];
@@ -657,6 +776,97 @@
         }
       });
 
+      // ── Screenshot ────────────────────────────────────────────────────────
+
+      snapshotBtn.addEventListener('click', function () {
+        var dataUrl = viewer.snapshot();
+        if (!dataUrl) return;
+        var a = document.createElement('a');
+        a.download = 'snapshot.png';
+        a.href = dataUrl;
+        a.click();
+      });
+
+      // ── Fullscreen ────────────────────────────────────────────────────────
+
+      fullscreenBtn.addEventListener('click', function () { viewer.toggleFullscreen(); });
+      document.addEventListener('fullscreenchange', function () {
+        var isFs = document.fullscreenElement != null;
+        fullscreenIcon.innerHTML = isFs
+          ? '<polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="10" y1="14" x2="3" y2="21"/><line x1="21" y1="3" x2="14" y2="10"/>'
+          : '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>';
+      });
+
+      // ── Wireframe ────────────────────────────────────────────────────────
+
+      wireframeSwitch.addEventListener('click', function () {
+        toggleSwitch(wireframeSwitch, function (v) { viewer.wireframe = v; });
+      });
+      wireframeSwitch.addEventListener('keydown', function (e) {
+        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); wireframeSwitch.click(); }
+      });
+
+      // ── Hemisphere light ──────────────────────────────────────────────────
+
+      hemisphereSwitch.addEventListener('click', function () {
+        toggleSwitch(hemisphereSwitch, function (v) { viewer.hemisphereEnabled = v; });
+      });
+      hemisphereSwitch.addEventListener('keydown', function (e) {
+        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); hemisphereSwitch.click(); }
+      });
+
+      // ── Shadow catcher ────────────────────────────────────────────────────
+
+      shadowCatcherSwitch.addEventListener('click', function () {
+        toggleSwitch(shadowCatcherSwitch, function (v) { viewer.shadowCatcher = v; });
+      });
+      shadowCatcherSwitch.addEventListener('keydown', function (e) {
+        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); shadowCatcherSwitch.click(); }
+      });
+
+      // ── Fog ───────────────────────────────────────────────────────────────
+
+      function applyFog() {
+        var enabled = fogSwitch.classList.contains('on');
+        var color = parseInt(fogColor.value.slice(1), 16);
+        viewer.setFog(enabled, color);
+        fogColorLabel.style.display = enabled ? 'flex' : 'none';
+      }
+
+      fogSwitch.addEventListener('click', function () {
+        fogSwitch.classList.toggle('on');
+        fogSwitch.setAttribute('aria-checked', fogSwitch.classList.contains('on'));
+        applyFog();
+      });
+      fogSwitch.addEventListener('keydown', function (e) {
+        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); fogSwitch.click(); }
+      });
+      fogColor.addEventListener('input', applyFog);
+
+      // ── Background ────────────────────────────────────────────────────────
+
+      function applyBackground() {
+        if (bgTransparent.checked) {
+          viewer.setBackground('transparent');
+          bgColor.disabled = true;
+        } else {
+          bgColor.disabled = false;
+          viewer.setBackground(parseInt(bgColor.value.slice(1), 16));
+        }
+      }
+
+      bgColor.addEventListener('input', applyBackground);
+      bgTransparent.addEventListener('change', applyBackground);
+
+      // ── Camera presets ────────────────────────────────────────────────────
+
+      camFrontBtn.addEventListener('click', function () { viewer.setCameraPreset('front'); });
+      camSideBtn.addEventListener('click',  function () { viewer.setCameraPreset('side'); });
+      camTopBtn.addEventListener('click',   function () { viewer.setCameraPreset('top'); });
+      camIsoBtn.addEventListener('click',   function () { viewer.setCameraPreset('iso'); });
+
+      // ── Events ────────────────────────────────────────────────────────────
+
       viewer.addEventListener('model-loaded', function () {
         console.log('Model loaded');
         if (texturePackSelect.value !== 'vanilla') applyTexturePackSelection();
@@ -665,7 +875,7 @@
       viewer.addEventListener('texture-pack-applied', function (e) {
         var d = e.detail;
         if (d && d.errors && d.errors.length) {
-          console.warn('Texture pack applied with errors:', d.applied, 'applied,', d.fromDefault, 'from default.', d.errors);
+          console.warn('Texture pack applied with errors:', d);
         } else {
           console.log('Texture pack applied. Applied:', d && d.applied, '| from default:', d && d.fromDefault);
         }
