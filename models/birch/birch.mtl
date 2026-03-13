@@ -1,0 +1,24 @@
+# Made in Blockbench 4.12.3
+newmtl m_f345789e-8c29-1362-029b-4e1923ff296c
+map_Kd grass_block_side.png
+newmtl m_e666b017-fc47-0710-dabc-d361ede7fe7d
+map_Kd grass_block_top.png
+newmtl m_80a3ab2b-f5c0-4c6e-a678-4a125a68305d
+map_Kd dirt.png
+newmtl m_70098ad3-deb5-19dc-8969-a1254067546c
+map_Kd pink_tulip.png
+newmtl m_20aea295-ea2b-d7a4-9989-a11b1396ee2b
+map_Kd birch_leaves.png
+newmtl m_87069218-6ca0-53fb-6a12-844577fe2503
+map_Kd birch_log.png
+newmtl m_e88582d6-8df6-5ebb-d013-409648e2b5c0
+map_Kd birch_log_top.png
+newmtl m_36a5cf41-8c07-e67d-3492-52a838f66c95
+map_Kd red_mushroom.png
+newmtl m_07b80522-710e-8ab0-3a5e-b088361a0088
+map_Kd brown_mushroom.png
+newmtl m_5a1f42bb-e684-b2ac-c9f3-0a59d8e6e67d
+map_Kd pink_petals.png
+newmtl m_b29abc1c-0cb9-aa86-7371-3d440b7a1f9b
+map_Kd pink_petals_stem.png
+newmtl none

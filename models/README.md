@@ -3,6 +3,9 @@
 Each model lives in its own subdirectory so OBJ + MTL (and any local refs) stay together.
 
 - **`warped-forest/`** — Warped Forest scene (Blockbench export: `warpedForest.obj`, `warpedForest.mtl`)
+- **`crimson-forest/`** — Crimson Forest scene (`crimson.obj`, `crimson.mtl`)
+- **`cherry/`** — Cherry scene (`cherry.obj`, `cherry.mtl`)
+- **`hut/`** — Hut scene (`hut.obj`, `hut.mtl`)
 - **`chicken/`** — Chicken entity (Blockbench export: `chicken.obj`, `chicken.mtl`)
 
 Use `model-url` pointing to the OBJ file (e.g. `./models/warped-forest/warpedForest.obj`). For OBJ, the MTL must sit next to the OBJ and be referenced by the same base name.

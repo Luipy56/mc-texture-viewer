@@ -6,6 +6,24 @@
     "manifestKey": "warpedForestManifest"
   },
   {
+    "name": "Crimson Forest",
+    "url": "/models/crimson-forest/crimson.obj",
+    "textureBaseUrl": "/assets/",
+    "manifestKey": "crimsonForestManifest"
+  },
+  {
+    "name": "Cherry",
+    "url": "/models/cherry/cherry.obj",
+    "textureBaseUrl": "/assets/",
+    "manifestKey": "cherryManifest"
+  },
+  {
+    "name": "Hut",
+    "url": "/models/hut/hut.obj",
+    "textureBaseUrl": "/assets/",
+    "manifestKey": "hutManifest"
+  },
+  {
     "name": "Chicken",
     "url": "/models/chicken/chicken.obj",
     "textureBaseUrl": "/assets/",

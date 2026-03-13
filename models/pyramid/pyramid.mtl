@@ -1,0 +1,18 @@
+# Made in Blockbench 4.12.3
+newmtl m_3d226b10-38c9-2931-fa0a-f20d8e3b3f2b
+map_Kd sandstone.png
+newmtl m_62d5fa20-4ea7-1200-ce2c-fa7e202c3bcd
+map_Kd sandstone_top.png
+newmtl m_516d18fa-03fd-1350-c85f-dfe55acf55fb
+map_Kd sandstone_bottom.png
+newmtl m_e6b3366a-6c42-4d92-cbbe-c2564c10f5c7
+map_Kd cut_sandstone.png
+newmtl m_bb2d304e-45a1-c5be-0053-06f8a2db7b60
+map_Kd sand.png
+newmtl m_c2450b67-a77d-7ec0-f593-9be11bf0ea44
+map_Kd orange_terracotta.png
+newmtl m_c7b0e6f0-a6c3-2633-23fd-b147d6aa9a1f
+map_Kd chiseled_sandstone.png
+newmtl m_ae88375b-515c-4415-1a37-3e34ca9ae5d2
+map_Kd cow.png
+newmtl none

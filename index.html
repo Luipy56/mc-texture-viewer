@@ -213,6 +213,12 @@
     .param-reset { cursor: pointer; }
     .param-reset:hover { color: var(--accent-hover); }
     .toolbar-row .toolbar-spacer { margin-left: auto; }
+    .toolbar-value {
+      display: inline-block;
+      min-width: 4.5ch;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
     .toolbar-info {
       font-size: 1rem;
       color: var(--gris-borde);
@@ -270,11 +276,9 @@
         <span class="toolbar-group-label" style="margin-right:0.25rem">Transition</span>
         <select id="transitionSelect" aria-label="Transition animation">
           <option value="none">None (instant)</option>
-          <option value="dissolve">1. Dissolve</option>
-          <option value="flash">2. Flash</option>
-          <option value="zoom">3. Zoom + Fade</option>
-          <option value="brush">4. Brush sweep</option>
-          <option value="spin">5. Spin</option>
+          <option value="zoom">Zoom + Fade</option>
+          <option value="brush">Brush sweep</option>
+          <option value="spin" selected>Spin</option>
         </select>
       </label>
     </div>
@@ -291,7 +295,7 @@
         <label class="switch-wrap param-reset" data-reset="rotationSpeed">
           <span>Speed</span>
           <input type="range" id="rotationSpeed" min="0.1" max="3" step="0.1" value="1" title="Rotation speed" />
-          <span id="rotationSpeedValue">1</span>
+          <span id="rotationSpeedValue" class="toolbar-value">1</span>
         </label>
       </div>
       <span class="toolbar-group-label">Light</span>
@@ -303,17 +307,17 @@
         <label class="switch-wrap param-reset" data-reset="sunAzimuth">
           <span>Azimuth</span>
           <input type="range" id="sunAzimuth" class="wide" min="0" max="360" value="30" title="Light horizontal angle (degrees)" />
-          <span id="sunAzimuthValue">30°</span>
+          <span id="sunAzimuthValue" class="toolbar-value">30°</span>
         </label>
         <label class="switch-wrap param-reset" data-reset="sunElevation">
           <span>Elevation</span>
           <input type="range" id="sunElevation" class="wide" min="-90" max="90" value="50" title="Light vertical angle (degrees)" />
-          <span id="sunElevationValue">50°</span>
+          <span id="sunElevationValue" class="toolbar-value">50°</span>
         </label>
         <label class="switch-wrap param-reset" data-reset="sunIntensity">
           <span>Intensity</span>
           <input type="range" id="sunIntensity" min="0" max="5" step="0.1" value="1.4" title="Light intensity" />
-          <span id="sunIntensityValue">1.4</span>
+          <span id="sunIntensityValue" class="toolbar-value">1.4</span>
         </label>
         <label class="switch-wrap param-reset" data-reset="sunColor">
           <span>Color</span>
@@ -418,7 +422,7 @@
         currentModelIdx = nextIdx;
         updateModelNav();
 
-        // 3. Wait for model-loaded before sliding in
+        // 3. Wait for model-loaded before sliding in (no texture transition when changing model)
         await new Promise(function (resolve) {
           function onLoaded() {
             viewer.removeEventListener('model-loaded', onLoaded);
@@ -432,6 +436,7 @@
           }
           viewer.addEventListener('model-loaded', onLoaded);
           viewer.addEventListener('error', onError);
+          viewer.skipTransitionForNextApply = true;
           applyModelSelection();
         });
 
@@ -614,6 +619,27 @@
         var hex = parseInt(sunColor.value.slice(1), 16);
         viewer.setSunColor(hex);
       });
+
+      function addWheelToRange(rangeInput) {
+        var wrap = rangeInput.closest('label') || rangeInput.parentElement;
+        if (!wrap) return;
+        wrap.addEventListener('wheel', function (e) {
+          e.preventDefault();
+          var min = parseFloat(rangeInput.min);
+          var max = parseFloat(rangeInput.max);
+          var step = parseFloat(rangeInput.step) || 1;
+          var cur = parseFloat(rangeInput.value);
+          var delta = e.deltaY > 0 ? -step : step;
+          var next = Math.min(max, Math.max(min, cur + delta));
+          if (next === cur) return;
+          rangeInput.value = next;
+          rangeInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }, { passive: false });
+      }
+      addWheelToRange(rotationSpeed);
+      addWheelToRange(sunAzimuth);
+      addWheelToRange(sunElevation);
+      addWheelToRange(sunIntensity);
 
       transitionSelect.addEventListener('change', function () {
         viewer.transitionType = transitionSelect.value;

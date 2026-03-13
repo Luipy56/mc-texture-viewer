@@ -1,0 +1,18 @@
+# Made in Blockbench 4.12.3
+newmtl m_2bd455c6-957b-ce53-8e09-360df20704b0
+map_Kd ../../assets/minecraft/textures/block/cherry_leaves.png
+newmtl m_564d15ae-29d8-19b7-6c88-ad183569552e
+map_Kd ../../assets/minecraft/textures/block/grass_block_side.png
+newmtl m_4f67e62b-9ed3-6891-b7f8-a9f710422365
+map_Kd ../../assets/minecraft/textures/block/grass_block_top.png
+newmtl m_6d0c50e5-4e6e-3fa8-9c1b-7990822615b0
+map_Kd ../../assets/minecraft/textures/block/dirt.png
+newmtl m_c4477e27-2b3f-c2b3-0f31-63e7cd880e22
+map_Kd ../../assets/minecraft/textures/block/pink_petals.png
+newmtl m_b66b6df3-a882-0566-c959-5506b7c752e9
+map_Kd ../../assets/minecraft/textures/block/pink_petals_stem.png
+newmtl m_1a0ca604-2063-e61a-3b9a-00db4b4d6738
+map_Kd ../../assets/minecraft/textures/block/cherry_log.png
+newmtl m_a457f4ef-4564-f066-a679-d769eecf0f48
+map_Kd ../../assets/minecraft/textures/block/cherry_log_top.png
+newmtl none

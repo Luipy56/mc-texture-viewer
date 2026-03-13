@@ -20,6 +20,8 @@ export class McViewerElement extends HTMLElement {
   private _textureBaseUrl = '';
   private _autoRotate = false;
   private _sunEnabled = true;
+  /** When true, next applyDefaultTextures (e.g. from onModelLoaded) runs without transition. Used when changing model via nav. */
+  private _skipTransitionForNextApply = false;
 
   static get observedAttributes(): string[] {
     return ['model-url', 'texture-base-url', 'auto-rotate', 'sun-enabled'];
@@ -46,7 +48,11 @@ export class McViewerElement extends HTMLElement {
       this.dispatchEvent(
         new CustomEvent('model-loaded', { detail: { model }, bubbles: true })
       );
-      if (this._textureBaseUrl) this.sceneManager?.applyDefaultTextures();
+      if (this._textureBaseUrl) {
+        const skip = this._skipTransitionForNextApply;
+        this._skipTransitionForNextApply = false;
+        this.sceneManager?.applyDefaultTextures(skip);
+      }
     };
     this.sceneManager.autoRotate = this._autoRotate;
     this.sceneManager.sunEnabled = this._sunEnabled;
@@ -230,9 +236,23 @@ export class McViewerElement extends HTMLElement {
   /**
    * Re-apply the default texture pack from texture-base-url using the current manifest.
    * Use when switching back from a custom ZIP pack to the built-in textures.
+   * Uses the current transition type (zoom/brush/spin) unless skipTransition was set.
    */
   async applyDefaultTextures(): Promise<void> {
-    await this.sceneManager?.applyDefaultTextures();
+    await this.sceneManager?.applyDefaultTextures(false);
+  }
+
+  /**
+   * When true, the next automatic applyDefaultTextures (after model load) will run without
+   * any transition animation. Set to true before changing model via navigation (e.g. arrows)
+   * so only the slide animation runs, not zoom/brush/spin.
+   */
+  get skipTransitionForNextApply(): boolean {
+    return this._skipTransitionForNextApply;
+  }
+
+  set skipTransitionForNextApply(value: boolean) {
+    this._skipTransitionForNextApply = value;
   }
 
   /** Exposed for Three.js: the canvas element where the scene is rendered. */

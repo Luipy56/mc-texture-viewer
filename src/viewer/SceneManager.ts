@@ -98,7 +98,7 @@ export class SceneManager {
   private _defaultTextureBaseUrl = '';
   private readonly _currentTextures = new Map<Material, Texture>();
   private readonly textureLoader = new TextureLoader();
-  private _transitionType: TransitionType = 'none';
+  private _transitionType: TransitionType = 'spin';
   private _transitionOverlay: HTMLDivElement | null = null;
 
   constructor(canvas: HTMLCanvasElement) {
@@ -298,68 +298,10 @@ export class SceneManager {
     }
   }
 
-  // ─── 1. Dissolve ─────────────────────────────────────────────────────────
-  private async transitionDissolve(applyTextures: () => Promise<void>): Promise<void> {
-    const mats = this.getMaterials();
-    const origOpacities = mats.map((m) => (m as { opacity?: number }).opacity ?? 1);
-    const origTransparent = mats.map((m) => (m as { transparent?: boolean }).transparent ?? false);
+  // ─── Zoom + fade ──────────────────────────────────────────────────────────
+  /** Final scale after zoom transition: slightly smaller so it matches the previous zoom-out. */
+  private static readonly ZOOM_FINAL_SCALE = 0.92;
 
-    // Enable transparency
-    for (const m of mats) {
-      (m as { transparent: boolean }).transparent = true;
-      m.needsUpdate = true;
-    }
-
-    // Fade out with dissolve-like noise via opacity
-    await this.animate(480, (t) => {
-      const alpha = 1 - t;
-      for (const m of mats) {
-        (m as { opacity: number }).opacity = alpha;
-        m.needsUpdate = true;
-      }
-    });
-
-    await applyTextures();
-
-    // Fade in
-    await this.animate(480, (t) => {
-      for (let i = 0; i < mats.length; i++) {
-        (mats[i] as { opacity: number }).opacity = t * origOpacities[i];
-        mats[i].needsUpdate = true;
-      }
-    });
-
-    // Restore
-    for (let i = 0; i < mats.length; i++) {
-      (mats[i] as { opacity: number }).opacity = origOpacities[i];
-      (mats[i] as { transparent: boolean }).transparent = origTransparent[i];
-      mats[i].needsUpdate = true;
-    }
-  }
-
-  // ─── 2. Flash ────────────────────────────────────────────────────────────
-  private async transitionFlash(applyTextures: () => Promise<void>): Promise<void> {
-    const overlay = this.ensureOverlay();
-    overlay.style.background = '#ffffff';
-    overlay.style.opacity = '0';
-
-    // Flash in
-    await this.animate(200, (t) => {
-      overlay.style.opacity = String(t * 0.92);
-    });
-
-    await applyTextures();
-
-    // Flash out
-    await this.animate(300, (t) => {
-      overlay.style.opacity = String((1 - t) * 0.92);
-    });
-
-    overlay.style.opacity = '0';
-    this.removeOverlay();
-  }
-
-  // ─── 3. Zoom + fade ──────────────────────────────────────────────────────
   private async transitionZoom(applyTextures: () => Promise<void>): Promise<void> {
     if (!this._modelGroup) { await applyTextures(); return; }
     const group = this._modelGroup;
@@ -371,9 +313,9 @@ export class SceneManager {
       m.needsUpdate = true;
     }
 
-    // Shrink + fade out
+    // Shrink + fade out (1 → ZOOM_FINAL_SCALE)
     await this.animate(380, (t) => {
-      const scale = 1 - t * 0.08;
+      const scale = 1 - t * (1 - SceneManager.ZOOM_FINAL_SCALE);
       group.scale.set(scale, scale, scale);
       for (const m of mats) {
         (m as { opacity: number }).opacity = 1 - t;
@@ -383,17 +325,16 @@ export class SceneManager {
 
     await applyTextures();
 
-    // Grow + fade in
+    // Fade in at same smaller scale (no grow back to 1)
     await this.animate(380, (t) => {
-      const scale = 0.92 + t * 0.08;
-      group.scale.set(scale, scale, scale);
+      group.scale.set(SceneManager.ZOOM_FINAL_SCALE, SceneManager.ZOOM_FINAL_SCALE, SceneManager.ZOOM_FINAL_SCALE);
       for (const m of mats) {
         (m as { opacity: number }).opacity = t;
         m.needsUpdate = true;
       }
     });
 
-    group.scale.set(1, 1, 1);
+    group.scale.set(SceneManager.ZOOM_FINAL_SCALE, SceneManager.ZOOM_FINAL_SCALE, SceneManager.ZOOM_FINAL_SCALE);
     for (let i = 0; i < mats.length; i++) {
       (mats[i] as { opacity: number }).opacity = 1;
       (mats[i] as { transparent: boolean }).transparent = origTransparent[i];
@@ -401,33 +342,26 @@ export class SceneManager {
     }
   }
 
-  // ─── 4. Brush sweep ──────────────────────────────────────────────────────
+  // ─── Brush sweep ───────────────────────────────────────────────────────────
   private async transitionBrush(applyTextures: () => Promise<void>): Promise<void> {
     if (!this._modelGroup) { await applyTextures(); return; }
 
-    // Compute model bounding box in world space to get x extent for clip plane
     const box = new Box3().setFromObject(this._modelGroup);
     const minX = box.min.x;
     const maxX = box.max.x;
     const width = maxX - minX || 1;
-
     const mats = this.getMaterials();
 
-    // Phase 1: sweep a clip plane from right edge to left, hiding the model (fade out half)
-    // We use a clip plane on the renderer (global clip) so it cuts all meshes
     this.renderer.clippingPlanes = [new Plane(new Vector3(1, 0, 0), -maxX)];
     this.renderer.localClippingEnabled = true;
 
     await this.animate(500, (t) => {
-      // Plane normal (1,0,0), constant moves from -maxX to -minX (sweeps left to right)
       const constant = -(minX + width * t);
       this.renderer.clippingPlanes = [new Plane(new Vector3(1, 0, 0), constant)];
     });
 
-    // All hidden — swap textures
     await applyTextures();
 
-    // Phase 2: reveal new textures — sweep clip plane back (right)
     await this.animate(500, (t) => {
       const constant = -(minX + width * (1 - t));
       this.renderer.clippingPlanes = [new Plane(new Vector3(1, 0, 0), constant)];
@@ -435,7 +369,7 @@ export class SceneManager {
 
     this.renderer.clippingPlanes = [];
     this.renderer.localClippingEnabled = false;
-    void mats; // unused ref
+    void mats;
   }
 
   // ─── 5. Spin + crossfade ────────────────────────────────────────────────
@@ -490,12 +424,10 @@ export class SceneManager {
     const wrapped = async () => { result = await applyTextures(); };
 
     switch (this._transitionType) {
-      case 'dissolve': await this.transitionDissolve(wrapped); break;
-      case 'flash':    await this.transitionFlash(wrapped); break;
-      case 'zoom':     await this.transitionZoom(wrapped); break;
-      case 'brush':    await this.transitionBrush(wrapped); break;
-      case 'spin':     await this.transitionSpin(wrapped); break;
-      default:         await wrapped(); break;
+      case 'zoom':  await this.transitionZoom(wrapped); break;
+      case 'brush': await this.transitionBrush(wrapped); break;
+      case 'spin':  await this.transitionSpin(wrapped); break;
+      default:      await wrapped(); break;
     }
     return result;
   }
@@ -552,9 +484,9 @@ export class SceneManager {
 
   /**
    * Apply default textures from _defaultTextureBaseUrl using _textureManifest.
-   * Call after model is loaded when default texture pack is configured.
+   * When skipTransition is true (e.g. after changing model with nav), no zoom/brush/spin runs.
    */
-  async applyDefaultTextures(): Promise<void> {
+  async applyDefaultTextures(skipTransition = false): Promise<void> {
     if (!this._loadedModel || !this._textureManifest || !this._defaultTextureBaseUrl)
       return;
     const urlMap: Record<string, string> = {};
@@ -562,7 +494,11 @@ export class SceneManager {
       urlMap[slot.filename] = this._defaultTextureBaseUrl + slot.filename;
       urlMap[slot.key] = urlMap[slot.filename];
     }
-    await this.runWithTransition(() => this.applyTexturePack(urlMap));
+    if (skipTransition) {
+      await this.applyTexturePack(urlMap);
+    } else {
+      await this.runWithTransition(() => this.applyTexturePack(urlMap));
+    }
   }
 
   /**
