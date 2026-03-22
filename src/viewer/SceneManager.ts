@@ -5,6 +5,8 @@ import {
   Color,
   Box3,
   Vector3,
+  Sphere,
+  MathUtils,
   PCFSoftShadowMap,
   Fog,
   PlaneGeometry,
@@ -77,7 +79,7 @@ export class SceneManager {
     this.renderer.outputColorSpace = 'srgb';
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = PCFSoftShadowMap;
-    this.renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+    this.renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
 
     this.lighting = new LightingManager(this.scene);
     this.textureApplicator = new TextureApplicator();
@@ -206,16 +208,14 @@ export class SceneManager {
   async setCameraPreset(preset: 'front' | 'side' | 'top' | 'iso'): Promise<void> {
     if (!this._loadedModel) return;
     const box = new Box3().setFromObject(this._loadedModel.group);
-    const size = new Vector3(); box.getSize(size);
-    const maxDim = Math.max(size.x, size.y, size.z);
-    const d = maxDim * 2;
+    const dist = this.computeViewDistance(box);
 
     let targetPos: Vector3;
     switch (preset) {
-      case 'front': targetPos = new Vector3(0, 0, d); break;
-      case 'side':  targetPos = new Vector3(d, 0, 0); break;
-      case 'top':   targetPos = new Vector3(0, d, 0.001); break;
-      case 'iso':   targetPos = new Vector3(d * 0.6, d * 0.5, d); break;
+      case 'front': targetPos = new Vector3(0, 0, dist); break;
+      case 'side': targetPos = new Vector3(dist, 0, 0); break;
+      case 'top': targetPos = new Vector3(0, dist, Math.max(1e-4, dist * 0.001)); break;
+      case 'iso': targetPos = new Vector3(0.55, 0.45, 0.85).normalize().multiplyScalar(dist); break;
     }
 
     const startPos = this.camera.position.clone();
@@ -282,20 +282,42 @@ export class SceneManager {
 
   // ─── Model loading ────────────────────────────────────────────────────────
 
-  private frameModel(group: Group): void {
+  /** Distance from origin so the model's bounding sphere fits the view (vertical + horizontal FOV). */
+  private computeViewDistance(box: Box3): number {
+    const sphere = new Sphere();
+    box.getBoundingSphere(sphere);
+    const r = Math.max(sphere.radius, 1e-4);
+    const vFovRad = MathUtils.degToRad(this.camera.fov);
+    const aspect = Math.max(this.camera.aspect, 1e-4);
+    const hFovRad = 2 * Math.atan(Math.tan(vFovRad / 2) * aspect);
+    const distV = r / Math.sin(vFovRad / 2);
+    const distH = r / Math.sin(hFovRad / 2);
+    return Math.max(distV, distH) * 1.12;
+  }
+
+  /** Move model so its bounding-box center is at the origin (world). */
+  private centerModelOnOrigin(group: Group): void {
     const box = new Box3().setFromObject(group);
-    const center = new Vector3(); const size = new Vector3();
-    box.getCenter(center); box.getSize(size);
+    const center = new Vector3();
+    box.getCenter(center);
     group.position.sub(center);
-    const maxDim = Math.max(size.x, size.y, size.z);
-    const distance = maxDim * 1.8;
-    const pos = new Vector3(distance * 0.6, distance * 0.5, distance);
+  }
+
+  /** Re-apply camera distance after resize or late layout (model already centered at origin). */
+  refitCurrentModelFrame(): void {
+    if (this._modelGroup) this.fitCameraToModel(this._modelGroup);
+  }
+
+  /** Place camera so the framed model fills the viewport; orbit target at origin. */
+  private fitCameraToModel(group: Group): void {
+    const box = new Box3().setFromObject(group);
+    const distance = this.computeViewDistance(box);
+    const pos = new Vector3(0.55, 0.45, 0.85).normalize().multiplyScalar(distance);
     this.camera.position.copy(pos);
     this.camera.lookAt(0, 0, 0);
     this.camera.updateProjectionMatrix();
     this.controls?.target.set(0, 0, 0);
     this.controls?.update();
-    // Save for resetCamera
     this._initialCameraPos.copy(pos);
     this._initialCameraTarget.set(0, 0, 0);
   }
@@ -339,9 +361,9 @@ export class SceneManager {
       });
       const loaded: LoadedModel = { group, meshes, materials };
       this._loadedModel = loaded;
-      this.frameModel(group);
+      this.centerModelOnOrigin(group);
       this.updateShadowCatcher(group);
-      // Re-apply wireframe state to new model
+      this.fitCameraToModel(group);
       if (this._wireframe) this.textureApplicator.applyWireframe(loaded, true);
       this._onModelLoaded?.(loaded);
       return loaded;
@@ -420,7 +442,8 @@ export class SceneManager {
   setSize(width: number, height: number): void {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
-    this.renderer.setSize(width, height);
+    // false = do not set canvas.style to fixed px; host keeps width/height 100% so layout can grow
+    this.renderer.setSize(width, height, false);
   }
 
   startRenderLoop(): void {

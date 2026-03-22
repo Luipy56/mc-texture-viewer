@@ -8,6 +8,28 @@ import type { LoadedModel } from './SceneManager.js';
 import { defaultTextureManifest } from './textureManifest.js';
 import type { TextureManifest, CameraPreset } from './types.js';
 
+const HOST_CSS = `
+  :host {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  /* Percentage height on canvas is unreliable in shadow roots; flex fills the host vertically */
+  canvas {
+    display: block;
+    flex: 1 1 0;
+    min-height: 0;
+    min-width: 0;
+    width: 100%;
+  }
+`;
+
 const SPINNER_CSS = `
   @keyframes _mcspin { to { transform: rotate(360deg); } }
   ._mcoverlay {
@@ -52,13 +74,15 @@ export class McViewerElement extends HTMLElement {
     super();
     this.shadow = this.attachShadow({ mode: 'open' });
 
-    // Spinner styles
+    const hostStyle = document.createElement('style');
+    hostStyle.textContent = HOST_CSS;
+    this.shadow.appendChild(hostStyle);
+
     const style = document.createElement('style');
     style.textContent = SPINNER_CSS;
     this.shadow.appendChild(style);
 
     this.canvas = document.createElement('canvas');
-    this.canvas.style.cssText = 'display:block;width:100%;height:100%;';
     this.shadow.appendChild(this.canvas);
 
     if (!this.style.minHeight) this.style.minHeight = '400px';
@@ -77,12 +101,16 @@ export class McViewerElement extends HTMLElement {
       this._hideLoadingOverlay();
       this.dispatchEvent(new CustomEvent('model-loaded', { detail: { model }, bubbles: true }));
       if (this._textureBaseUrl) this.sceneManager?.applyDefaultTextures();
+      requestAnimationFrame(() => {
+        this.handleResize();
+        this.sceneManager?.refitCurrentModelFrame();
+      });
     };
     this.sceneManager.autoRotate = this._autoRotate;
     this.sceneManager.sunEnabled = this._sunEnabled;
     this.sceneManager.startRenderLoop();
     this.resizeObserver = new ResizeObserver(() => this.handleResize());
-    this.resizeObserver.observe(this.canvas);
+    this.resizeObserver.observe(this);
     this.handleResize();
     if (this._modelUrl) this.loadModel();
 
@@ -115,6 +143,11 @@ export class McViewerElement extends HTMLElement {
     if (w > 0 && h > 0 && this.sceneManager) {
       this.sceneManager.setSize(w, h);
     }
+  }
+
+  /** After outer layout changes (e.g. toolbar expand/collapse), sync drawing buffer to host size. */
+  updateLayout(): void {
+    this.handleResize();
   }
 
   private _showLoadingOverlay(): void {

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Congreso de la Textura Ortogonal (1873) — Enciclopedia libre de bloques</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/demo-toolbar.css" />
+  <style>
+    :root {
+      --wiki-bg: #f8f9fa;
+      --wiki-panel: #ffffff;
+      --wiki-border: #a7d7f9;
+      --wiki-border-soft: #c8ccd1;
+      --wiki-link: #3366cc;
+      --wiki-link-visited: #795cb2;
+      --wiki-text: #202122;
+      --wiki-muted: #54595d;
+      --wiki-accent-bg: #eaf3ff;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+      color: var(--wiki-text);
+      background: var(--wiki-bg);
+    }
+    a { color: var(--wiki-link); text-decoration: none; }
+    a:visited { color: var(--wiki-link-visited); }
+    a:hover { text-decoration: underline; }
+
+    .wiki-chrome {
+      background: var(--wiki-panel);
+      border-bottom: 1px solid var(--wiki-border-soft);
+      padding: 0.35rem 1rem;
+      font-size: 0.8125rem;
+      color: var(--wiki-muted);
+    }
+    .wiki-chrome-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .wiki-logo {
+      font-weight: 700;
+      color: var(--wiki-text);
+      letter-spacing: -0.02em;
+    }
+
+    .wiki-wrap {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 1rem 1.25rem 3rem;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    @media (min-width: 900px) {
+      .wiki-wrap {
+        grid-template-columns: 11rem 1fr;
+        align-items: start;
+      }
+    }
+
+    .wiki-sidebar {
+      font-size: 0.8125rem;
+      color: var(--wiki-muted);
+      border: 1px solid var(--wiki-border-soft);
+      background: var(--wiki-panel);
+      padding: 0.75rem;
+      border-radius: 2px;
+    }
+    .wiki-sidebar h2 {
+      margin: 0 0 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--wiki-text);
+    }
+    .wiki-sidebar ul { margin: 0; padding-left: 1.1rem; }
+
+    .wiki-main {
+      background: var(--wiki-panel);
+      border: 1px solid var(--wiki-border);
+      border-radius: 2px;
+      padding: 1.25rem 1.5rem 2rem;
+      box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+    }
+
+    .wiki-title {
+      font-family: "Libre Baskerville", Georgia, "Times New Roman", serif;
+      font-size: 1.75rem;
+      font-weight: 400;
+      line-height: 1.25;
+      margin: 0 0 0.25rem;
+      border-bottom: 1px solid var(--wiki-border-soft);
+      padding-bottom: 0.35rem;
+    }
+    .wiki-subtitle {
+      margin: 0 0 1rem;
+      font-size: 0.8125rem;
+      color: var(--wiki-muted);
+    }
+
+    .hatnote {
+      font-style: italic;
+      font-size: 0.875rem;
+      color: var(--wiki-muted);
+      border: 1px solid var(--wiki-border-soft);
+      background: var(--wiki-accent-bg);
+      padding: 0.5rem 0.75rem;
+      margin: 0 0 1rem;
+      border-radius: 2px;
+    }
+
+    .wiki-float-right {
+      float: right;
+      width: min(280px, 100%);
+      margin: 0 0 1rem 1.25rem;
+      border: 1px solid var(--wiki-border-soft);
+      background: #f9f9f9;
+      font-size: 0.8125rem;
+      border-collapse: collapse;
+    }
+    .wiki-float-right th {
+      background: #eaecf0;
+      padding: 0.5rem;
+      font-weight: 600;
+      text-align: center;
+    }
+    .wiki-float-right td {
+      padding: 0.35rem 0.5rem;
+      border-top: 1px solid var(--wiki-border-soft);
+      vertical-align: top;
+    }
+    .wiki-float-right td:first-child {
+      font-weight: 600;
+      width: 38%;
+      color: var(--wiki-muted);
+    }
+
+    .wiki-main p { margin: 0 0 0.85rem; }
+    .wiki-main h2 {
+      font-family: "Libre Baskerville", Georgia, serif;
+      font-size: 1.35rem;
+      font-weight: 400;
+      margin: 1.5rem 0 0.5rem;
+      border-bottom: 1px solid var(--wiki-border-soft);
+      padding-bottom: 0.2rem;
+    }
+    .wiki-main h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin: 1.25rem 0 0.4rem;
+    }
+    .wiki-main .reflist {
+      font-size: 0.8125rem;
+      color: var(--wiki-muted);
+      padding-left: 1.25rem;
+    }
+    .wiki-main::after { content: ""; display: table; clear: both; }
+
+    /* Contenedor del embed: cualquier sitio puede copiar este bloque + el script del bundle */
+    .embed-sale-box {
+      clear: both;
+      margin: 1.75rem 0;
+      padding: 1rem;
+      border: 2px dashed var(--wiki-border-soft);
+      border-radius: 4px;
+      background: linear-gradient(180deg, #fafafa 0%, #fff 40%);
+    }
+    .embed-sale-box > .label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--wiki-muted);
+      margin-bottom: 0.5rem;
+    }
+    .wiki-footer-note {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--wiki-border-soft);
+      font-size: 0.75rem;
+      color: var(--wiki-muted);
+    }
+  </style>
+</head>
+<body>
+  <header class="wiki-chrome" aria-label="Barra ficticia">
+    <div class="wiki-chrome-inner">
+      <span class="wiki-logo">Bloquepedia</span>
+      <span>Artículo · Discusión · Papelera cuántica</span>
+    </div>
+  </header>
+
+  <div class="wiki-wrap">
+    <aside class="wiki-sidebar" aria-label="Navegación ficticia">
+      <h2>Herramientas</h2>
+      <ul>
+        <li><a href="#">Enlazar aquí</a></li>
+        <li><a href="#">Cambios relacionados</a></li>
+        <li><a href="#">Subir bloque</a></li>
+        <li><a href="#">Página especial</a></li>
+      </ul>
+    </aside>
+
+    <article class="wiki-main" lang="es">
+      <h1 class="wiki-title">Congreso de la Textura Ortogonal de 1873</h1>
+      <p class="wiki-subtitle">Reunión mixta de topógrafos, canteros y un creeper invitado que no firmó acta.</p>
+
+      <p class="hatnote">Este artículo trata del congreso histórico. Para el festival de música, véase <a href="#">Orthogonal Texture Fest</a>. No confundir con <em>congreso ortográfico</em>, que solo afectó a la tilde de “nylium”.</p>
+
+      <table class="wiki-float-right" role="presentation">
+        <thead>
+          <tr><th colspan="2">Datos del evento</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Fecha</td><td>14–16 de bloctubre de 1873</td></tr>
+          <tr><td>Lugar</td><td>Salón de los 16×16 píxeles, distrito <em>Warped</em></td></tr>
+          <tr><td>Asistentes</td><td>≈120 (más 3 entidades sin colisión)</td></tr>
+          <tr><td>Resultado</td><td>Adopción del <strong>manifiesto del nearest-neighbor</strong></td></tr>
+        </tbody>
+      </table>
+
+      <p>
+        El <strong>Congreso de la Textura Ortogonal de 1873</strong> fue una asamblea técnica convocada para dirimir si las caras laterales del nylium distorsionado debían compartir atlas con el netherrack o merecían un expediente propio con sello de cera (#8B4513). Los debates se prolongaron hasta la madrugada, interrumpidos únicamente por el ruido de un <em>chunk</em> que cargó mal y dejó flotando media raíz carmesí en el techo.
+      </p>
+      <p>
+        Según el diario satírico <cite>La Viga Ilustrada</cite>, un delegado gritó: «¡La mipmapping es un invento del demonio para suavizar nuestras convicciones!», tras lo cual se aprobó por unanimidad servir té en cubos de un solo texel. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua — frase añadida por el redactor para rellenar columnas mientras llegaba el minuto de silencio por los UV maps perdidos.
+      </p>
+
+      <h2>Extracto del diario de sesión (apéndice Z)</h2>
+      <p>
+        <em>Bloctubre 15, 2:47 a.m.</em> — Hoy el profesor M. afirmó que el bosque deforme “no es un bioma, es un estado de ánimo”. Tomamos nota. Alguien propuso medir la felicidad en <abbr title="píxeles por segundo de scroll">pps</abbr>. Se rechazó. En el pasillo, un becario confundió el <em>manifest</em> de texturas con el menú del catering; resultado: treinta y ocho PNG de queso sobre pan de centeno aplicados por error a los pilares de obsidiana. Moraleja: siempre versionar el ZIP antes del catering.
+      </p>
+      <p>
+        <em>Misma noche, 4:12 a.m.</em> — Lorem sidereus: ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequat. Nadie supo traducirlo. Se archivó bajo “miscelánea latina”. Un visitante gritó que el modelo 3D “se veía bien en su máquina”, lo cual la acta registra como el primer uso documentado del verbo <em>funcionar™</em> en contexto académico.
+      </p>
+
+      <h2>Visor embebido (demostración comercial)</h2>
+      <p>
+        El bloque siguiente incluye la <strong>barra de controles completa</strong> (modelos, packs ZIP, luz, cámara, etc.) más <code>&lt;mc-texture-viewer&gt;</code>, igual que en el demo principal. Estilos compartidos: <code>public/demo-toolbar.css</code>; lógica: <code>src/demo-toolbar.ts</code>. En producción sustituye los <code>import</code> de Vite por el bundle IIFE.
+      </p>
+
+      <div class="embed-sale-box">
+        <div class="label">Toolbar + visor (mismo bloque reutilizable en cualquier web)</div>
+        <div id="mcWikiDemoRoot">
+          <div class="toolbar">
+            <div class="toolbar-row toolbar-row--primary">
+              <div class="model-nav" aria-label="Model selector">
+                <span class="toolbar-group-label" style="margin-right:0.25rem">Model</span>
+                <button type="button" class="model-nav-btn" id="modelPrevBtn" title="Previous model" aria-label="Previous model">&#8249;</button>
+                <select id="modelSelect" aria-label="Select model"></select>
+                <button type="button" class="model-nav-btn" id="modelNextBtn" title="Next model" aria-label="Next model">&#8250;</button>
+                <div class="model-nav-dots" id="modelNavDots" aria-hidden="true"></div>
+              </div>
+              <label>
+                Texture pack: <select id="texturePackSelect" aria-label="Select texture pack"></select>
+              </label>
+              <button
+                type="button"
+                class="toolbar-toggle-extra"
+                id="toolbarExtraToggle"
+                aria-expanded="false"
+                aria-controls="toolbarExtra"
+                data-label-expanded="Ocultar controles extra"
+                data-label-collapsed="Mostrar controles extra"
+                title="Plegar o desplegar pack ZIP, iluminación, cámara y demás"
+              >Mostrar controles extra</button>
+            </div>
+            <div id="toolbarExtra" class="toolbar-extra" hidden>
+            <div class="toolbar-row">
+              <label class="file-input-label">
+                Add Pack
+                <span class="file-input-wrap">
+                  <span class="file-input-btn">Add Pack…</span>
+                  <span class="file-input-name" id="zipFileName"></span>
+                  <input type="file" id="zipInput" accept=".zip" />
+                </span>
+              </label>
+              <label title="Animation played when swapping texture packs">
+                <span class="toolbar-group-label" style="margin-right:0.25rem">Transition</span>
+                <select id="transitionSelect" aria-label="Transition animation">
+                  <option value="none">None (instant)</option>
+                  <option value="zoom">Zoom + Fade</option>
+                  <option value="brush">Brush sweep</option>
+                  <option value="spin" selected>Spin</option>
+                </select>
+              </label>
+              <div class="toolbar-group toolbar-extra-actions">
+                <button type="button" class="btn-icon" id="snapshotBtn" title="Download screenshot (S)">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                </button>
+                <button type="button" class="btn-icon" id="fullscreenBtn" title="Fullscreen (F)">
+                  <svg id="fullscreenIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="toolbar-row">
+              <button type="button" class="btn-reset" id="resetAllBtn" title="Reset camera, rotation and light to defaults" aria-label="Reset all">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              </button>
+              <span class="toolbar-group-label">Rotation</span>
+              <div class="toolbar-group">
+                <div class="switch-wrap param-reset" data-reset="autoRotate">
+                  <div class="switch" id="autoRotateSwitch" role="switch" aria-checked="false" tabindex="0" title="Auto-rotate model (R)"></div>
+                  <span>Auto-rotate</span>
+                </div>
+                <label class="switch-wrap param-reset" data-reset="rotationSpeed">
+                  <span>Speed</span>
+                  <input type="range" id="rotationSpeed" min="0.1" max="3" step="0.1" value="1" title="Rotation speed" />
+                  <span id="rotationSpeedValue" class="toolbar-value">1</span>
+                </label>
+              </div>
+              <span class="toolbar-group-label">Light</span>
+              <div class="toolbar-group">
+                <div class="switch-wrap param-reset" data-reset="sunEnabled">
+                  <div class="switch on" id="sunSwitch" role="switch" aria-checked="true" tabindex="0" title="Sun on/off"></div>
+                  <span>Sun</span>
+                </div>
+                <label class="switch-wrap param-reset" data-reset="sunAzimuth">
+                  <span>Azimuth</span>
+                  <input type="range" id="sunAzimuth" class="wide" min="0" max="360" value="30" />
+                  <span id="sunAzimuthValue" class="toolbar-value">30°</span>
+                </label>
+                <label class="switch-wrap param-reset" data-reset="sunElevation">
+                  <span>Elevation</span>
+                  <input type="range" id="sunElevation" class="wide" min="-90" max="90" value="50" />
+                  <span id="sunElevationValue" class="toolbar-value">50°</span>
+                </label>
+                <label class="switch-wrap param-reset" data-reset="sunIntensity">
+                  <span>Intensity</span>
+                  <input type="range" id="sunIntensity" min="0" max="5" step="0.1" value="1.4" />
+                  <span id="sunIntensityValue" class="toolbar-value">1.4</span>
+                </label>
+                <label class="switch-wrap param-reset" data-reset="sunColor">
+                  <span>Color</span>
+                  <input type="color" id="sunColor" value="#fff0e0" title="Light color" />
+                </label>
+              </div>
+              <span class="toolbar-spacer"></span>
+              <span class="toolbar-info" role="img" aria-label="Keyboard shortcuts"
+                title="R=auto-rotate, W=wireframe, F=fullscreen, S=screenshot, Space=reset camera, ←/→=model. Double-click a parameter to reset.">ℹ</span>
+            </div>
+            <div class="toolbar-row">
+              <span class="toolbar-group-label">Camera</span>
+              <div class="toolbar-group">
+                <button type="button" id="camFrontBtn" title="Front view" style="padding:0.3rem 0.6rem;font-size:0.8rem">Front</button>
+                <button type="button" id="camSideBtn" title="Side view" style="padding:0.3rem 0.6rem;font-size:0.8rem">Side</button>
+                <button type="button" id="camTopBtn" title="Top view" style="padding:0.3rem 0.6rem;font-size:0.8rem">Top</button>
+                <button type="button" id="camIsoBtn" title="Isometric view" style="padding:0.3rem 0.6rem;font-size:0.8rem">Iso</button>
+              </div>
+              <span class="toolbar-group-label">Effects</span>
+              <div class="toolbar-group">
+                <div class="switch-wrap">
+                  <div class="switch" id="wireframeSwitch" role="switch" aria-checked="false" tabindex="0" title="Wireframe (W)"></div>
+                  <span>Wireframe</span>
+                </div>
+                <div class="switch-wrap">
+                  <div class="switch" id="hemisphereSwitch" role="switch" aria-checked="false" tabindex="0" title="Hemisphere light"></div>
+                  <span>Hemisphere</span>
+                </div>
+                <div class="switch-wrap">
+                  <div class="switch" id="shadowCatcherSwitch" role="switch" aria-checked="false" tabindex="0" title="Ground shadow catcher"></div>
+                  <span>Shadows</span>
+                </div>
+                <div class="switch-wrap">
+                  <div class="switch" id="fogSwitch" role="switch" aria-checked="false" tabindex="0" title="Fog"></div>
+                  <span>Fog</span>
+                </div>
+                <label class="switch-wrap" id="fogColorLabel" style="display:none">
+                  <span>Fog color</span>
+                  <input type="color" id="fogColor" value="#1a1a1a" title="Fog color" />
+                </label>
+              </div>
+              <span class="toolbar-group-label">Background</span>
+              <div class="toolbar-group">
+                <input type="color" id="bgColor" value="#1a1a1a" title="Background color" />
+                <label class="switch-wrap">
+                  <input type="checkbox" id="bgTransparent" />
+                  <span>Transparent</span>
+                </label>
+              </div>
+            </div>
+            </div>
+          </div>
+          <mc-texture-viewer id="viewer" sun-enabled></mc-texture-viewer>
+        </div>
+      </div>
+
+      <h2>Consecuencias</h2>
+      <p>
+        El manifiesto del <em>nearest-neighbor</em> influyó en décadas posteriores de pixel art institucional. Los críticos señalan que el apartado 7.b) nunca definió qué hacer con el canal alpha de las hojas de sauce, lo que explica por qué tres generaciones de texturizadores vivieron con ansiedad leve y carpetas llamadas <code>final_final_v2_really</code>.
+      </p>
+
+      <h2>Referencias</h2>
+      <ol class="reflist">
+        <li>Fondón, J. (1874). <em>Atlas, atascos y otras tragedias mipmap</em>. Imprenta del Nether.</li>
+        <li>Comité Paritario de Vértices (1873). Actas resumidas (págs. 12–∞ perdidas en un merge).</li>
+        <li>Este pie de página es inventado; no citar en TFG salvo que el tribunal tenga sentido del humor.</li>
+      </ol>
+
+      <p class="wiki-footer-note">
+        Página de prueba del proyecto <strong>mc-texture-viewer</strong>. Desarrollo: <code>npm run dev</code> → <code>/wiki-embed-demo.html</code>. La toolbar y el visor comparten código con <code>/</code> (index) vía <code>demo-toolbar.css</code> + <code>src/demo-toolbar.ts</code>.
+      </p>
+    </article>
+  </div>
+
+  <script type="module">
+    import '/src/embed.ts';
+    import { initMcTextureViewerDemo } from '/src/demo-toolbar.ts';
+
+    const wikiRoot = document.getElementById('mcWikiDemoRoot');
+    if (wikiRoot) initMcTextureViewerDemo(wikiRoot, 'embed');
+    else console.error('[mc-texture-viewer demo] #mcWikiDemoRoot not found');
+  </script>
+</body>
+</html>

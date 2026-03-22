@@ -1,0 +1,359 @@
+/**
+ * Shared toolbar + viewer chrome for mc-texture-viewer demos (index + wiki embed).
+ * Scope everything under .mc-demo-toolbar-root so it can sit inside any page layout.
+ */
+
+/* Full-page shell: set class mc-page-demo on <html> (see index.html) */
+html.mc-page-demo,
+html.mc-page-demo body {
+  height: 100%;
+  margin: 0;
+}
+html.mc-page-demo {
+  overflow: hidden;
+}
+html.mc-page-demo body {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+html.mc-page-demo .mc-demo-toolbar-root.mc-demo--page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Embedded in article (wiki): fixed minimum height, optional max */
+.mc-demo-toolbar-root.mc-demo--embed {
+  display: flex;
+  flex-direction: column;
+  min-height: min(520px, 85vh);
+  max-height: 90vh;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--gris-borde, #2a3530);
+  background: #0c100e;
+}
+
+.mc-demo-toolbar-root {
+  --negro: #0c100e;
+  --gris-oscuro: #131a17;
+  --gris-card: #1a2220;
+  --gris-borde: #2a3530;
+  --blanco: #f0f0f0;
+  --blanco-muted: rgba(240, 240, 240, 0.75);
+  --accent: #00ffa6;
+  --accent-hover: #5cffb8;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --danger: #e06c75;
+  font-family: 'Outfit', 'Segoe UI', system-ui, sans-serif;
+  color: var(--blanco);
+  box-sizing: border-box;
+}
+.mc-demo-toolbar-root *,
+.mc-demo-toolbar-root *::before,
+.mc-demo-toolbar-root *::after {
+  box-sizing: border-box;
+}
+
+.mc-demo-toolbar-root .toolbar {
+  flex-shrink: 0;
+  width: 100%;
+  min-height: 4rem;
+  padding: 0.6rem 1rem;
+  background: var(--gris-card);
+  border-bottom: 1px solid var(--gris-borde);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.mc-demo-toolbar-root .toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+.mc-demo-toolbar-root .toolbar input[type="text"] {
+  padding: 0.35rem 0.5rem;
+  background: var(--negro);
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radius-sm);
+  color: var(--blanco);
+  font-size: 0.875rem;
+  font-family: inherit;
+}
+.mc-demo-toolbar-root .toolbar input[type="text"]:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.mc-demo-toolbar-root .toolbar input[type="text"]::placeholder {
+  color: var(--blanco-muted);
+}
+.mc-demo-toolbar-root .toolbar select {
+  padding: 0.35rem 0.5rem;
+  background: var(--negro);
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radius-sm);
+  color: var(--blanco);
+  font-size: 0.875rem;
+  font-family: inherit;
+  cursor: pointer;
+  min-width: 10rem;
+}
+.mc-demo-toolbar-root .toolbar select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.mc-demo-toolbar-root #modelSelect {
+  min-width: 0;
+  max-width: 12rem;
+}
+.mc-demo-toolbar-root .toolbar .file-input-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  cursor: pointer;
+}
+.mc-demo-toolbar-root .toolbar .file-input-wrap input[type="file"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 0;
+}
+.mc-demo-toolbar-root .toolbar .file-input-btn {
+  padding: 0.4rem 0.75rem;
+  background: var(--gris-card);
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radius-sm);
+  color: var(--blanco);
+  font-size: 0.875rem;
+  font-family: inherit;
+  pointer-events: none;
+}
+.mc-demo-toolbar-root .toolbar .file-input-wrap:hover .file-input-btn {
+  background: var(--gris-borde);
+}
+.mc-demo-toolbar-root .toolbar .file-input-name {
+  color: var(--blanco-muted);
+  font-size: 0.8125rem;
+  max-width: 14ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mc-demo-toolbar-root .toolbar button {
+  padding: 0.4rem 0.75rem;
+  background: var(--gris-card);
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radius-sm);
+  color: var(--blanco);
+  font-size: 0.875rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+.mc-demo-toolbar-root .toolbar button:hover {
+  background: var(--gris-borde);
+}
+.mc-demo-toolbar-root .toolbar button:active {
+  background: var(--gris-oscuro);
+}
+.mc-demo-toolbar-root .toolbar-row--primary {
+  align-items: center;
+}
+.mc-demo-toolbar-root .toolbar-toggle-extra {
+  margin-left: auto;
+  flex-shrink: 0;
+  padding: 0.35rem 0.65rem;
+  background: var(--gris-oscuro);
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radius-sm);
+  color: var(--blanco-muted);
+  font-size: 0.8125rem;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.mc-demo-toolbar-root .toolbar-toggle-extra:hover {
+  color: var(--blanco);
+  border-color: var(--accent);
+}
+.mc-demo-toolbar-root .toolbar-extra {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+/* Author `display:flex` beats the attribute selector otherwise; keep [hidden] effective */
+.mc-demo-toolbar-root .toolbar-extra[hidden] {
+  display: none !important;
+}
+.mc-demo-toolbar-root .toolbar-extra-actions {
+  margin-left: auto;
+}
+.mc-demo-toolbar-root .toolbar-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  width: 100%;
+  min-height: 1px;
+}
+.mc-demo-toolbar-root .toolbar-row:not(:first-child) {
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--gris-borde);
+}
+.mc-demo-toolbar-root .toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.mc-demo-toolbar-root .toolbar-group-label {
+  font-size: 0.75rem;
+  color: var(--blanco-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: 0.25rem;
+}
+.mc-demo-toolbar-root .switch-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.mc-demo-toolbar-root .switch-wrap span {
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+.mc-demo-toolbar-root .switch {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  background: var(--gris-borde);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.mc-demo-toolbar-root .switch.on { background: var(--accent); }
+.mc-demo-toolbar-root .switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: var(--blanco);
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+.mc-demo-toolbar-root .switch.on::after { transform: translateX(16px); }
+.mc-demo-toolbar-root .toolbar input[type="range"] {
+  width: 80px;
+  height: 6px;
+  accent-color: var(--accent);
+}
+.mc-demo-toolbar-root .toolbar input[type="range"].wide { width: 100px; }
+.mc-demo-toolbar-root .toolbar input[type="color"] {
+  width: 28px;
+  height: 28px;
+  padding: 2px;
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radius-sm);
+  background: var(--negro);
+  cursor: pointer;
+}
+.mc-demo-toolbar-root .param-reset { cursor: pointer; }
+.mc-demo-toolbar-root .param-reset:hover { color: var(--accent-hover); }
+.mc-demo-toolbar-root .toolbar-row .toolbar-spacer { margin-left: auto; }
+.mc-demo-toolbar-root .toolbar-value {
+  display: inline-block;
+  min-width: 4.5ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.mc-demo-toolbar-root .toolbar-info {
+  font-size: 1rem;
+  color: var(--gris-borde);
+  cursor: help;
+  line-height: 1;
+  padding: 0 0.25rem;
+}
+.mc-demo-toolbar-root .toolbar-info:hover { color: var(--blanco-muted); }
+.mc-demo-toolbar-root .btn-reset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: var(--gris-card);
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radius-sm);
+  color: var(--blanco-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.mc-demo-toolbar-root .btn-reset:hover { background: var(--gris-borde); color: var(--blanco); }
+.mc-demo-toolbar-root .btn-reset svg { width: 16px; height: 16px; flex-shrink: 0; display: block; }
+.mc-demo-toolbar-root .btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: var(--gris-card);
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radius-sm);
+  color: var(--blanco-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.mc-demo-toolbar-root .btn-icon:hover { background: var(--gris-borde); color: var(--blanco); }
+.mc-demo-toolbar-root .btn-icon svg { width: 16px; height: 16px; flex-shrink: 0; display: block; }
+.mc-demo-toolbar-root .model-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.mc-demo-toolbar-root .model-nav-btn {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mc-demo-toolbar-root .model-nav-dots {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin-left: 0.25rem;
+}
+.mc-demo-toolbar-root .model-nav-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gris-borde);
+  transition: background 0.2s;
+}
+.mc-demo-toolbar-root .model-nav-dot.active { background: var(--accent); }
+
+.mc-demo-toolbar-root #viewer {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #1a1a1a;
+}
+.mc-demo-toolbar-root.mc-demo--embed #viewer {
+  min-height: 320px;
+}
