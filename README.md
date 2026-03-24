@@ -77,7 +77,13 @@ npm install
 npm run build
 ```
 
-Output: `dist/mc-texture-viewer.js` (IIFE). Serve it and the assets (model, default textures) from your origin or CDN.
+Output:
+
+- **`dist/mc-texture-viewer.js`** — IIFE: custom element + `window.McTextureViewer` manifests only.
+- **`dist/mc-texture-viewer-demo.js`** — IIFE that also boots the full toolbar (`initMcTextureViewerDemo`); pair with **`dist/viewer-demo.html`** and **`dist/demo-toolbar.css`**, plus `models/` and `assets/` as in dev.
+- **`dist/viewer-embed.html`** — minimal single-model page (no toolbar); omit `auto-rotate` unless you want spin by default.
+
+When the demo lives under a subpath (e.g. `/testing/`), `viewer-demo.html` infers the prefix from the script URL so `/models/…` in `models.json` resolves correctly. Override with `data-asset-base="/your/prefix"` on `#mcDemoRoot` if needed.
 
 ## Development
 

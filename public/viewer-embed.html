@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>mc-texture-viewer — embed mínimo</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #111; }
+    mc-texture-viewer {
+      display: block;
+      height: 100vh;
+      min-height: 400px;
+    }
+  </style>
+</head>
+<body>
+  <script src="./mc-texture-viewer.js"></script>
+  <mc-texture-viewer
+    id="viewer"
+    model-url="./models/warped-forest/warpedForest.obj"
+    texture-base-url="./assets/"
+    sun-enabled
+  ></mc-texture-viewer>
+  <script>
+    (function () {
+      var el = document.getElementById('viewer');
+      if (!el || !window.McTextureViewer) return;
+      el.addEventListener('model-loaded', function () {
+        if (window.McTextureViewer.warpedForestManifest) {
+          el.setTextureManifest(window.McTextureViewer.warpedForestManifest);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

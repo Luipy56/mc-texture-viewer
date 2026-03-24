@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" class="mc-demo-iframe-shell">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>mc-texture-viewer demo (static bundle)</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap" />
+  <link rel="stylesheet" href="./demo-toolbar.css" />
+</head>
+<body>
+  <div id="mcDemoRoot">
+  <div class="toolbar">
+    <div class="toolbar-row toolbar-row--primary">
+      <div class="model-nav" aria-label="Model selector">
+        <span class="toolbar-group-label" style="margin-right:0.25rem">Model</span>
+        <button type="button" class="model-nav-btn" id="modelPrevBtn" title="Previous model" aria-label="Previous model">&#8249;</button>
+        <select id="modelSelect" aria-label="Select model"></select>
+        <button type="button" class="model-nav-btn" id="modelNextBtn" title="Next model" aria-label="Next model">&#8250;</button>
+        <div class="model-nav-dots" id="modelNavDots" aria-hidden="true"></div>
+      </div>
+      <label>
+        Texture pack: <select id="texturePackSelect" aria-label="Select texture pack"></select>
+      </label>
+      <button
+        type="button"
+        class="toolbar-toggle-extra"
+        id="toolbarExtraToggle"
+        aria-expanded="false"
+        aria-controls="toolbarExtra"
+        data-label-expanded="Hide extra controls"
+        data-label-collapsed="Show extra controls"
+        title="Collapse or expand Add pack, lighting, camera, and other controls"
+      >Show extra controls</button>
+    </div>
+
+    <div id="toolbarExtra" class="toolbar-extra" hidden>
+    <div class="toolbar-row">
+      <label class="file-input-label">
+        Add Pack
+        <span class="file-input-wrap">
+          <span class="file-input-btn">Add Pack…</span>
+          <span class="file-input-name" id="zipFileName"></span>
+          <input type="file" id="zipInput" accept=".zip" />
+        </span>
+      </label>
+      <label title="Animation played when swapping texture packs">
+        <span class="toolbar-group-label" style="margin-right:0.25rem">Transition</span>
+        <select id="transitionSelect" aria-label="Transition animation">
+          <option value="none">None (instant)</option>
+          <option value="zoom">Zoom + Fade</option>
+          <option value="brush">Brush sweep</option>
+          <option value="spin" selected>Spin</option>
+        </select>
+      </label>
+      <div class="toolbar-group toolbar-extra-actions">
+        <button type="button" class="btn-icon" id="snapshotBtn" title="Download screenshot (S)">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </button>
+        <button type="button" class="btn-icon" id="fullscreenBtn" title="Fullscreen (F)">
+          <svg id="fullscreenIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="toolbar-row">
+      <button type="button" class="btn-reset" id="resetAllBtn" title="Reset camera, rotation and light to defaults" aria-label="Reset all">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      </button>
+      <span class="toolbar-group-label">Rotation</span>
+      <div class="toolbar-group">
+        <div class="switch-wrap param-reset" data-reset="autoRotate">
+          <div class="switch" id="autoRotateSwitch" role="switch" aria-checked="false" tabindex="0" title="Auto-rotate model (R)"></div>
+          <span>Auto-rotate</span>
+        </div>
+        <label class="switch-wrap param-reset" data-reset="rotationSpeed">
+          <span>Speed</span>
+          <input type="range" id="rotationSpeed" min="0.1" max="3" step="0.1" value="1" title="Rotation speed" />
+          <span id="rotationSpeedValue" class="toolbar-value">1</span>
+        </label>
+      </div>
+      <span class="toolbar-group-label">Light</span>
+      <div class="toolbar-group">
+        <div class="switch-wrap param-reset" data-reset="sunEnabled">
+          <div class="switch on" id="sunSwitch" role="switch" aria-checked="true" tabindex="0" title="Sun on/off"></div>
+          <span>Sun</span>
+        </div>
+        <label class="switch-wrap param-reset" data-reset="sunAzimuth">
+          <span>Azimuth</span>
+          <input type="range" id="sunAzimuth" class="wide" min="0" max="360" value="30" />
+          <span id="sunAzimuthValue" class="toolbar-value">30°</span>
+        </label>
+        <label class="switch-wrap param-reset" data-reset="sunElevation">
+          <span>Elevation</span>
+          <input type="range" id="sunElevation" class="wide" min="-90" max="90" value="50" />
+          <span id="sunElevationValue" class="toolbar-value">50°</span>
+        </label>
+        <label class="switch-wrap param-reset" data-reset="sunIntensity">
+          <span>Intensity</span>
+          <input type="range" id="sunIntensity" min="0" max="5" step="0.1" value="1.4" />
+          <span id="sunIntensityValue" class="toolbar-value">1.4</span>
+        </label>
+        <label class="switch-wrap param-reset" data-reset="sunColor">
+          <span>Color</span>
+          <input type="color" id="sunColor" value="#fff0e0" title="Light color" />
+        </label>
+      </div>
+      <span class="toolbar-spacer"></span>
+      <span class="toolbar-info" role="img" aria-label="Keyboard shortcuts"
+        title="Keyboard shortcuts: R=auto-rotate, W=wireframe, F=fullscreen, S=screenshot, Space=reset camera, ←/→=prev/next model. Double-click a parameter to reset it.">ℹ</span>
+    </div>
+
+    <div class="toolbar-row">
+      <span class="toolbar-group-label">Camera</span>
+      <div class="toolbar-group">
+        <button type="button" id="camFrontBtn" title="Front view" style="padding:0.3rem 0.6rem;font-size:0.8rem">Front</button>
+        <button type="button" id="camSideBtn"  title="Side view"  style="padding:0.3rem 0.6rem;font-size:0.8rem">Side</button>
+        <button type="button" id="camTopBtn"   title="Top view"   style="padding:0.3rem 0.6rem;font-size:0.8rem">Top</button>
+        <button type="button" id="camIsoBtn"   title="Isometric view" style="padding:0.3rem 0.6rem;font-size:0.8rem">Iso</button>
+      </div>
+
+      <span class="toolbar-group-label">Effects</span>
+      <div class="toolbar-group">
+        <div class="switch-wrap">
+          <div class="switch" id="wireframeSwitch" role="switch" aria-checked="false" tabindex="0" title="Wireframe (W)"></div>
+          <span>Wireframe</span>
+        </div>
+        <div class="switch-wrap">
+          <div class="switch" id="hemisphereSwitch" role="switch" aria-checked="false" tabindex="0" title="Hemisphere light (sky/ground AO)"></div>
+          <span>Hemisphere</span>
+        </div>
+        <div class="switch-wrap">
+          <div class="switch" id="shadowCatcherSwitch" role="switch" aria-checked="false" tabindex="0" title="Ground shadow catcher"></div>
+          <span>Shadows</span>
+        </div>
+        <div class="switch-wrap">
+          <div class="switch" id="fogSwitch" role="switch" aria-checked="false" tabindex="0" title="Fog"></div>
+          <span>Fog</span>
+        </div>
+        <label class="switch-wrap" id="fogColorLabel" style="display:none">
+          <span>Fog color</span>
+          <input type="color" id="fogColor" value="#1a1a1a" title="Fog color" />
+        </label>
+      </div>
+
+      <span class="toolbar-group-label">Background</span>
+      <div class="toolbar-group">
+        <input type="color" id="bgColor" value="#1a1a1a" title="Background color" />
+        <label class="switch-wrap">
+          <input type="checkbox" id="bgTransparent" />
+          <span>Transparent</span>
+        </label>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <mc-texture-viewer id="viewer" sun-enabled></mc-texture-viewer>
+  </div>
+
+  <script src="./mc-texture-viewer-demo.js"></script>
+</body>
+</html>

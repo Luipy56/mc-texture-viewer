@@ -10,8 +10,7 @@ import type { TextureManifest, CameraPreset } from './types.js';
 
 const HOST_CSS = `
   :host {
-    display: flex;
-    flex-direction: column;
+    display: block;
     position: relative;
     width: 100%;
     height: 100%;
@@ -20,13 +19,20 @@ const HOST_CSS = `
     box-sizing: border-box;
     overflow: hidden;
   }
-  /* Percentage height on canvas is unreliable in shadow roots; flex fills the host vertically */
-  canvas {
-    display: block;
-    flex: 1 1 0;
+  /* Fill the host exactly so the canvas matches the light-DOM box (OrbitControls only hit the canvas). */
+  ._mccanvaswrap {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     min-height: 0;
     min-width: 0;
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
     width: 100%;
+    height: 100%;
   }
 `;
 
@@ -50,6 +56,7 @@ export class McViewerElement extends HTMLElement {
   static readonly tagName = 'mc-texture-viewer';
 
   private readonly shadow: ShadowRoot;
+  private readonly canvasWrap: HTMLDivElement;
   private readonly canvas: HTMLCanvasElement;
   private sceneManager: SceneManager | null = null;
   private resizeObserver: ResizeObserver | null = null;
@@ -82,16 +89,20 @@ export class McViewerElement extends HTMLElement {
     style.textContent = SPINNER_CSS;
     this.shadow.appendChild(style);
 
+    this.canvasWrap = document.createElement('div');
+    this.canvasWrap.className = '_mccanvaswrap';
     this.canvas = document.createElement('canvas');
-    this.shadow.appendChild(this.canvas);
-
-    if (!this.style.minHeight) this.style.minHeight = '400px';
-    this.style.display = this.style.display || 'block';
-    // Required for overlay positioning
-    this.style.position = this.style.position || 'relative';
+    this.canvasWrap.appendChild(this.canvas);
+    this.shadow.appendChild(this.canvasWrap);
   }
 
   connectedCallback(): void {
+    // Host layout must not be set in the constructor (would reflect to the `style`
+    // attribute and violates custom element construction constraints).
+    if (!this.style.minHeight) this.style.minHeight = '400px';
+    /* Do not set display:inline — :host uses display:block; inline would break absolute canvas fill. */
+    this.style.position = this.style.position || 'relative';
+
     this.syncFromAttributes();
     this.sceneManager = new SceneManager(this.canvas);
     this.sceneManager.setTextureManifest(defaultTextureManifest);

@@ -37,6 +37,28 @@ html.mc-page-demo .mc-demo-toolbar-root.mc-demo--page {
   background: #0c100e;
 }
 
+/*
+ * viewer-demo.html uses class mc-demo-iframe-shell on <html> when the page is loaded inside an
+ * iframe: vh is the top-level viewport, so min/max-height on .mc-demo--embed left the demo
+ * shorter than the iframe and showed empty band (parent iframe background). Fill the iframe
+ * with a normal html/body height chain + flex.
+ */
+html.mc-demo-iframe-shell,
+html.mc-demo-iframe-shell body {
+  height: 100%;
+  margin: 0;
+}
+html.mc-demo-iframe-shell body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+html.mc-demo-iframe-shell .mc-demo-toolbar-root.mc-demo--embed {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+}
+
 .mc-demo-toolbar-root {
   --negro: #0c100e;
   --gris-oscuro: #131a17;

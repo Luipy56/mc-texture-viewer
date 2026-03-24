@@ -19,6 +19,17 @@ function byId<T extends HTMLElement>(root: ParentNode, id: string): T | null {
   return root.querySelector('#' + id.replace(/^#/, '')) as T | null;
 }
 
+/** Prefix for root-relative URLs in models.json (e.g. `/testing` when hosted under a subpath). */
+function getStaticAssetBase(host: HTMLElement): string {
+  return (host.getAttribute('data-asset-base') || '').trim().replace(/\/$/, '');
+}
+
+function resolveStaticUrl(base: string, path: string): string {
+  if (!base) return path;
+  if (path.startsWith('/')) return base + path;
+  return path;
+}
+
 export type DemoToolbarMode = 'page' | 'embed';
 
 /**
@@ -27,6 +38,7 @@ export type DemoToolbarMode = 'page' | 'embed';
  */
 export function initMcTextureViewerDemo(root: HTMLElement, mode: DemoToolbarMode = 'embed'): void {
   root.classList.add('mc-demo-toolbar-root', mode === 'page' ? 'mc-demo--page' : 'mc-demo--embed');
+  const staticBase = getStaticAssetBase(root);
 
   const viewerEl = byId<McViewerElement>(root, 'viewer');
   const modelSelect = byId<HTMLSelectElement>(root, 'modelSelect');
@@ -178,8 +190,8 @@ export function initMcTextureViewerDemo(root: HTMLElement, mode: DemoToolbarMode
   function applyModelSelection(): void {
     const m = MODELS[currentModelIdx];
     if (!m) return;
-    viewer.setAttribute('model-url', m.url);
-    viewer.setAttribute('texture-base-url', m.textureBaseUrl);
+    viewer.setAttribute('model-url', resolveStaticUrl(staticBase, m.url));
+    viewer.setAttribute('texture-base-url', resolveStaticUrl(staticBase, m.textureBaseUrl));
     const manifestKey = m.manifestKey;
     const M = window.McTextureViewer;
     if (manifestKey && M) {
