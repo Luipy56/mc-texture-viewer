@@ -1,0 +1,20 @@
+---
+description: Bump package patch version when changing project code or shipped assets
+alwaysApply: true
+---
+
+# Semver patch bump on changes
+
+Whenever you **change anything that ships with the app** (source under `src/`, `index.html`, public assets, build config that affects output, etc.), **increment the patch** version at the end of the session (or before committing), not only for features—bugfixes and refactors count too.
+
+## Where to update
+
+1. **`package.json`** — bump `"version"` (e.g. `0.1.0` → `0.1.1`). Prefer `npm version patch --no-git-tag-version` so `package-lock.json` stays in sync, or bump both files consistently if editing by hand.
+2. **User-visible version** — keep **`index.html`** (e.g. `Version: x.y.z` in the toolbar) **identical** to `package.json`’s version.
+
+Skip a version bump only for **non-shipping** edits (e.g. `.cursor/rules/`, local-only docs the build does not emit).
+
+## Semver reminder
+
+- **Patch** — default for routine code/asset changes in this workflow.
+- **Minor / major** — use when the change warrants API or compatibility semantics (breaking changes → major; additive API → minor).

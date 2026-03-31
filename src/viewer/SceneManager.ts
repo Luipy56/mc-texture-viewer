@@ -44,6 +44,53 @@ export interface TexturePackResult {
 const AUTO_ROTATE_SPEED_BASE = 0.3 * (Math.PI / 180);
 const SUN_RADIUS = 20;
 
+const GL_CONTEXT_OPTS: WebGLContextAttributes = {
+  alpha: true,
+  depth: true,
+  stencil: true,
+  antialias: true,
+  premultipliedAlpha: true,
+  preserveDrawingBuffer: false,
+  failIfMajorPerformanceCaveat: false,
+  powerPreference: 'default',
+};
+
+const GL_CONTEXT_OPTS_SOFT: WebGLContextAttributes = {
+  ...GL_CONTEXT_OPTS,
+  antialias: false,
+  powerPreference: 'low-power',
+};
+
+/**
+ * Acquire a WebGL context without constructing WebGLRenderer (avoids repeated
+ * THREE.js console errors when GL is blocked, e.g. sandboxed iframe).
+ */
+function acquireWebGLContext(
+  canvas: HTMLCanvasElement
+): WebGLRenderingContext | WebGL2RenderingContext | null {
+  return (
+    canvas.getContext('webgl2', GL_CONTEXT_OPTS) ??
+    canvas.getContext('webgl2', GL_CONTEXT_OPTS_SOFT) ??
+    canvas.getContext('webgl', GL_CONTEXT_OPTS) ??
+    canvas.getContext('webgl', GL_CONTEXT_OPTS_SOFT) ??
+    null
+  );
+}
+
+/**
+ * Wrap an existing GL context in WebGLRenderer. Returns null if Three.js fails.
+ */
+function createWebGLRenderer(
+  canvas: HTMLCanvasElement,
+  context: WebGLRenderingContext | WebGL2RenderingContext
+): WebGLRenderer | null {
+  try {
+    return new WebGLRenderer({ canvas, context });
+  } catch {
+    return null;
+  }
+}
+
 /** Apply pixel-art style: no blur, crisp texels (Minecraft-style). */
 function setTexturePixelFilter(texture: Texture): void {
   texture.magFilter = NearestFilter;
@@ -77,6 +124,28 @@ function textureHasAlpha(texture: Texture): boolean {
 }
 
 export class SceneManager {
+  /**
+   * Build a scene manager, or return null if WebGL cannot be initialized.
+   */
+  static tryCreate(canvas: HTMLCanvasElement): SceneManager | null {
+    const gl = acquireWebGLContext(canvas);
+    if (!gl) return null;
+    const renderer = createWebGLRenderer(canvas, gl);
+    if (!renderer) {
+      const lose = gl.getExtension('WEBGL_lose_context') as
+        | WEBGL_lose_context
+        | null;
+      lose?.loseContext();
+      return null;
+    }
+    try {
+      return new SceneManager(canvas, renderer);
+    } catch {
+      renderer.dispose();
+      return null;
+    }
+  }
+
   readonly scene: Scene;
   readonly camera: PerspectiveCamera;
   readonly renderer: WebGLRenderer;
@@ -101,14 +170,14 @@ export class SceneManager {
   private _transitionType: TransitionType = 'spin';
   private _transitionOverlay: HTMLDivElement | null = null;
 
-  constructor(canvas: HTMLCanvasElement) {
+  private constructor(canvas: HTMLCanvasElement, renderer: WebGLRenderer) {
     this.scene = new Scene();
     this.scene.background = new Color(0x1a1a1a);
 
     this.camera = new PerspectiveCamera(50, 1, 0.1, 1000);
     this.camera.position.set(0, 0, 5);
 
-    this.renderer = new WebGLRenderer({ canvas, antialias: true });
+    this.renderer = renderer;
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.outputColorSpace = 'srgb';
     this.renderer.shadowMap.enabled = true;

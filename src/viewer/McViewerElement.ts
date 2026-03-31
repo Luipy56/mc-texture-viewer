@@ -8,6 +8,12 @@ import type { LoadedModel, TexturePackResult } from './SceneManager.js';
 import { defaultTextureManifest } from './textureManifest.js';
 import type { TextureManifest, TransitionType } from './types.js';
 
+/**
+ * Fired when the viewer reports a failure (WebGL, model load, texture ZIP).
+ * Not named `error` — that clashes with native ErrorEvent handling and SES / lockdown (e.g. Chrome + wallet extensions).
+ */
+export const MC_TEXTURE_VIEWER_ERROR_EVENT = 'mc-texture-viewer-error';
+
 export class McViewerElement extends HTMLElement {
   static readonly tagName = 'mc-texture-viewer';
 
@@ -15,6 +21,7 @@ export class McViewerElement extends HTMLElement {
   private readonly canvas: HTMLCanvasElement;
   private sceneManager: SceneManager | null = null;
   private resizeObserver: ResizeObserver | null = null;
+  private webglFallback: HTMLDivElement | null = null;
 
   private _modelUrl = '';
   private _textureBaseUrl = '';
@@ -41,7 +48,14 @@ export class McViewerElement extends HTMLElement {
 
   connectedCallback(): void {
     this.syncFromAttributes();
-    this.sceneManager = new SceneManager(this.canvas);
+    this.removeWebGLFallback();
+    this.canvas.style.display = 'block';
+    this.sceneManager = SceneManager.tryCreate(this.canvas);
+    if (!this.sceneManager) {
+      this.canvas.style.display = 'none';
+      this.showWebGLUnavailable();
+      return;
+    }
     this.sceneManager.setTextureManifest(defaultTextureManifest);
     if (this._textureBaseUrl) this.sceneManager.setDefaultTextureBaseUrl(this._textureBaseUrl);
     this.sceneManager.onModelLoaded = (model: LoadedModel) => {
@@ -68,6 +82,72 @@ export class McViewerElement extends HTMLElement {
     this.resizeObserver = null;
     this.sceneManager?.dispose();
     this.sceneManager = null;
+    this.removeWebGLFallback();
+    this.canvas.style.display = 'block';
+  }
+
+  private showWebGLUnavailable(): void {
+    if (this.webglFallback) return;
+    try {
+      const panel = document.createElement('div');
+      panel.setAttribute('role', 'alert');
+      panel.style.cssText = [
+        'box-sizing:border-box',
+        'padding:1.25rem',
+        'min-height:200px',
+        'display:flex',
+        'flex-direction:column',
+        'align-items:center',
+        'justify-content:center',
+        'text-align:center',
+        'gap:0.75rem',
+        'background:#1a1a1a',
+        'color:#e8e8e8',
+        'font:14px/1.5 system-ui,sans-serif',
+        'border-radius:4px',
+      ].join(';');
+      const p1 = document.createElement('p');
+      p1.style.margin = '0';
+      p1.textContent =
+        '3D view is unavailable: WebGL is disabled or blocked in this context.';
+      const p2 = document.createElement('p');
+      p2.style.cssText = 'margin:0;color:#999;font-size:13px;max-width:36em';
+      p2.textContent =
+        'If this page is embedded in an iframe, the host may need to relax the iframe sandbox or allow WebGL. Try opening the page in a new tab. If it still fails (e.g. due to the OS or GPU), try another browser or check hardware acceleration in your browser settings.';
+      panel.appendChild(p1);
+      panel.appendChild(p2);
+      this.shadow.appendChild(panel);
+      this.webglFallback = panel;
+    } catch {
+      /* DOM / hardened JS (e.g. SES) may restrict shadow DOM; avoid throwing */
+    }
+    this.dispatchViewerError({
+      message:
+        'WebGL context could not be created (blocked or unavailable).',
+      source: 'webgl',
+    });
+  }
+
+  private dispatchViewerError(detail: {
+    message: string;
+    source: 'webgl' | 'model-load' | 'texture-pack';
+  }): void {
+    try {
+      this.dispatchEvent(
+        new CustomEvent(MC_TEXTURE_VIEWER_ERROR_EVENT, {
+          bubbles: true,
+          composed: true,
+          detail,
+        })
+      );
+    } catch {
+      /* SES / lockdown may reject dispatch in edge cases */
+    }
+  }
+
+  private removeWebGLFallback(): void {
+    this.webglFallback?.remove();
+    this.webglFallback = null;
   }
 
   private handleResize(): void {
@@ -83,12 +163,10 @@ export class McViewerElement extends HTMLElement {
     try {
       await this.sceneManager.loadModel(this._modelUrl);
     } catch (err) {
-      this.dispatchEvent(
-        new CustomEvent('error', {
-          detail: { message: String(err), source: 'model-load' },
-          bubbles: true,
-        })
-      );
+      this.dispatchViewerError({
+        message: String(err),
+        source: 'model-load',
+      });
     }
   }
 
@@ -316,12 +394,7 @@ export class McViewerElement extends HTMLElement {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error('[mc-texture-viewer] applyTextureZip failed:', message);
-      this.dispatchEvent(
-        new CustomEvent('error', {
-          bubbles: true,
-          detail: { message, source: 'texture-pack' },
-        })
-      );
+      this.dispatchViewerError({ message, source: 'texture-pack' });
     } finally {
       for (const url of blobUrls) URL.revokeObjectURL(url);
       console.log('[mc-texture-viewer] applyTextureZip: blob URLs revoked');

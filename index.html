@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300ffa6' stroke-width='2'><rect x='3' y='7' width='18' height='13' rx='1'/><path d='M3 7l9-4 9 4'/><path d='M12 3v17'/></svg>" type="image/svg+xml">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>mc-texture-viewer demo</title>
+  <title>mtv.ldeluipy.es — Minecraft texture viewer</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap" />
   <style>
     /* Design tokens from primordial.css (ldeluipy.es design system) */
@@ -35,6 +36,7 @@
       min-height: 0;
     }
     .toolbar {
+      position: relative;
       flex-shrink: 0;
       width: 100%;
       min-height: 4rem;
@@ -45,6 +47,18 @@
       flex-direction: column;
       align-items: flex-start;
       gap: 0.5rem;
+    }
+    .toolbar-version {
+      position: absolute;
+      top: 0.6rem;
+      right: 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--blanco-muted);
+      letter-spacing: 0.02em;
+      pointer-events: none;
+      user-select: none;
+      z-index: 1;
     }
     .toolbar label {
       display: flex;
@@ -142,11 +156,17 @@
     }
     .toolbar-row {
       display: flex;
-      align-items: center;
-      gap: 1rem;
+      align-items: flex-start;
+      gap: 0.75rem 1rem;
       flex-wrap: wrap;
       width: 100%;
+      min-width: 0;
       min-height: 1px;
+    }
+    .toolbar-row > .btn-reset,
+    .toolbar-row > .toolbar-group-label,
+    .toolbar-row > .toolbar-group {
+      align-self: center;
     }
     .toolbar-row:not(:first-child) {
       padding-top: 0.5rem;
@@ -154,8 +174,11 @@
     }
     .toolbar-group {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: 0.5rem;
+      min-width: 0;
+      max-width: 100%;
     }
     .toolbar-group-label {
       font-size: 0.75rem;
@@ -212,7 +235,6 @@
     }
     .param-reset { cursor: pointer; }
     .param-reset:hover { color: var(--accent-hover); }
-    .toolbar-row .toolbar-spacer { margin-left: auto; }
     .toolbar-value {
       display: inline-block;
       min-width: 4.5ch;
@@ -220,6 +242,9 @@
       font-variant-numeric: tabular-nums;
     }
     .toolbar-info {
+      margin-left: auto;
+      flex-shrink: 0;
+      align-self: center;
       font-size: 1rem;
       color: var(--gris-borde);
       cursor: help;
@@ -253,6 +278,7 @@
 </head>
 <body>
   <div class="toolbar">
+    <span class="toolbar-version">Version: 0.1.1</span>
     <div class="toolbar-row">
       <div class="model-nav" aria-label="Model selector">
         <span class="toolbar-group-label" style="margin-right:0.25rem">Model</span>
@@ -324,14 +350,13 @@
           <input type="color" id="sunColor" value="#fff0e0" title="Light color" />
         </label>
       </div>
-      <span class="toolbar-spacer"></span>
       <span class="toolbar-info" role="img" aria-label="More information" title="Double-click a parameter to reset it.">ℹ</span>
     </div>
   </div>
   <mc-texture-viewer id="viewer" sun-enabled></mc-texture-viewer>
+  <script src="/dist/mc-texture-viewer.js"></script>
   <script type="module">
-    import '/src/embed.ts';
-    import modelsList from '/models/models.json';
+    fetch('/models/models.json').then(function(r){ return r.json(); }).then(function(modelsList) {
     (function () {
       var viewer = document.getElementById('viewer');
       var modelSelect = document.getElementById('modelSelect');
@@ -426,16 +451,16 @@
         await new Promise(function (resolve) {
           function onLoaded() {
             viewer.removeEventListener('model-loaded', onLoaded);
-            viewer.removeEventListener('error', onError);
+            viewer.removeEventListener('mc-texture-viewer-error', onError);
             resolve();
           }
           function onError() {
             viewer.removeEventListener('model-loaded', onLoaded);
-            viewer.removeEventListener('error', onError);
+            viewer.removeEventListener('mc-texture-viewer-error', onError);
             resolve();
           }
           viewer.addEventListener('model-loaded', onLoaded);
-          viewer.addEventListener('error', onError);
+          viewer.addEventListener('mc-texture-viewer-error', onError);
           viewer.skipTransitionForNextApply = true;
           applyModelSelection();
         });
@@ -661,7 +686,7 @@
         console.log('Model loaded');
         if (texturePackSelect.value !== 'vanilla') applyTexturePackSelection();
       });
-      viewer.addEventListener('error', function (e) { console.error('Viewer error:', e.detail); });
+      viewer.addEventListener('mc-texture-viewer-error', function (e) { console.error('Viewer error:', e.detail); });
       viewer.addEventListener('texture-pack-applied', function (e) {
         var d = e.detail;
         if (d && d.errors && d.errors.length) {
@@ -671,6 +696,7 @@
         }
       });
     })();
+    }); // fetch models
   </script>
 </body>
 </html>

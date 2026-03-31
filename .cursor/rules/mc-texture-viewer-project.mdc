@@ -27,7 +27,7 @@ When editing code, docs, or config, use these names. Do not use the old name `mc
 ## Conventions
 
 - Attributes: `model-url`, `texture-base-url`, `auto-rotate`, `sun-enabled`. Use kebab-case in HTML and reflected camelCase in JS.
-- Public API: `setTextureManifest()`, `applyTextureZip(blob)`. Events: `model-loaded`, `error`, `texture-pack-applied`.
+- Public API: `setTextureManifest()`, `applyTextureZip(blob)`. Events: `model-loaded`, `mc-texture-viewer-error` (failures; not named `error` — avoids SES/browser `ErrorEvent` clashes), `texture-pack-applied`. `window.McTextureViewer.ERROR_EVENT` matches the error event name.
 - Texture manifest maps material/slot names to texture filenames; default pack from `texture-base-url`, overrides from ZIP with fallback to default.
 
 ## Directory name

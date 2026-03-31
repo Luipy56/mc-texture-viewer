@@ -1,4 +1,7 @@
-import { McViewerElement } from './viewer/McViewerElement.js';
+import {
+  McViewerElement,
+  MC_TEXTURE_VIEWER_ERROR_EVENT,
+} from './viewer/McViewerElement.js';
 import {
   warpedForestManifest,
   chickenManifest,
@@ -19,6 +22,8 @@ declare global {
       cherryManifest: typeof cherryManifest;
       hutManifest: typeof hutManifest;
       crimsonForestManifest: typeof crimsonForestManifest;
+      /** Same string as `MC_TEXTURE_VIEWER_ERROR_EVENT` — use for addEventListener. */
+      ERROR_EVENT: typeof MC_TEXTURE_VIEWER_ERROR_EVENT;
     };
   }
 }
@@ -29,5 +34,6 @@ if (typeof window !== 'undefined') {
     cherryManifest,
     hutManifest,
     crimsonForestManifest,
+    ERROR_EVENT: MC_TEXTURE_VIEWER_ERROR_EVENT,
   };
 }
